@@ -18,30 +18,26 @@ no if $] >= 5.017011, warnings => 'experimental::smartmatch';
 
 our $log = new Console;
 
-# Begin:
-
 $log->header;
-
-# Exhibit general system information:
-
-SysInfo->showHostname;
-SysInfo->showExternalIPv4;
-SysInfo->showExternalIPv6;
-SysInfo->showNetworkIP;
-SysInfo->showPrivateIP;
-
-# Exhibit network information:
-
-# Finish:
-
+SysInfo->showSystemInformation;			# display system specifics
 $log->footer;
 exit;
 
 ##
 # Dig for system information (hostname, IPs, etc.)
 #
-
 package SysInfo;
+
+# display information about the system/server
+
+sub showSystemInformation {
+	my $class = shift;
+	$class->showHostname;
+	$class->showExternalIPv4;
+	$class->showExternalIPv6;
+	$class->showNetworkIP;
+	$class->showPrivateIP;
+	}
 
 # display the hostname in use by the system
 
@@ -83,9 +79,7 @@ sub showPrivateIP {
 ##
 # Console.pm - Console (STDOUT) handler
 #
-
 package Console;
-
 use constant DEFAULT_PREFIX		=> '=';		# default line prefix
 use constant LABEL_SIZE			=> 24;		# max length of value label
 
@@ -95,7 +89,6 @@ use constant LABEL_SIZE			=> 24;		# max length of value label
 #	@param string $prefix		: (optional) prefix to output
 #	@return object
 #
-
 sub new {
 	my $class = shift;
 	my $this = {};
