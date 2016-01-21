@@ -90,6 +90,7 @@ sub new {
 	$this->{prefix} .= " ";		# append a space
 	$0 =~ /(.*\/)*([^.]+)(\..*)*/;	# extract
 	$this->{script} = ucfirst $2;	#  our name
+	$this->{script} = "Ferret" if ($this->{script} =~ /[0-9]+/);
 	$this->{bold} = `tput bold`; chomp($this->{bold});
 	$this->{normal} = `tput sgr0`; chomp($this->{normal});
 	return $this;
