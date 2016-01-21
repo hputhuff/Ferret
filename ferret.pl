@@ -61,7 +61,7 @@ sub showExternalIP {
 sub showInternalIP {
 	my $class = shift;
 	my $dump = `ip addr | grep inet" "`;
-	$dump =~ /inet\s+127\..+?inet\s+(\d+\.\d+\.\d+\.\d+)/is;
+	$dump =~ /eth1.+?inet\s+(\d+\.\d+\.\d+\.\d+)/is;
 	$log->exhibit("Internal IP",$1);
 	}
 
