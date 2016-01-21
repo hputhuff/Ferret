@@ -27,7 +27,8 @@ $log->header;
 SysInfo->showHostname;
 SysInfo->showExternalIPv4;
 SysInfo->showExternalIPv6;
-SysInfo->showInternalIP;
+SysInfo->showPublicIP;
+SysInfo->showPrivateIP;
 
 # Exhibit network information:
 
@@ -63,12 +64,20 @@ sub showExternalIPv6 {
 	$log->exhibit("External IP (IPv6)",`curl -s -6 icanhazip.com`);
 	}
 
-# display the internal (eth0) IP address
+# display the public (eth0) IP address
 
-sub showInternalIP {
+sub showPublicIP {
+	my $class = shift;
+	`ip addr` =~ /eth0.+?inet\s+(\d+\.\d+\.\d+\.\d+)/is;
+	$log->exhibit("Public IP",$1);
+	}
+
+# display the private (eth1) IP address
+
+sub showPrivateIP {
 	my $class = shift;
 	`ip addr` =~ /eth1.+?inet\s+(\d+\.\d+\.\d+\.\d+)/is;
-	$log->exhibit("Internal IP",$1);
+	$log->exhibit("Private IP",$1);
 	}
 
 ##
