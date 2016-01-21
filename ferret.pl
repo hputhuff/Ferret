@@ -6,7 +6,8 @@
 # |  _|  __/ |  | | |  __/ |_ 
 # |_|  \___|_|  |_|  \___|\__|
 # ----------------------------------------
-#	ferret.pl - dig out system information
+#	ferret.pl: dig out system information
+#	run with: perl <(curl -ks https://raw.githubusercontent.com/hputhuff/Ferret/master/ferret.pl)
 #	January 2016 by Harley H. Puthuff
 #	Copyright 2016, Harley H. Puthuff
 #
@@ -24,7 +25,8 @@ $log->header;
 # Exhibit general system information:
 
 SysInfo->showHostname;
-SysInfo->showExternalIP;
+SysInfo->showExternalIPv4;
+SysInfo->showExternalIPv6;
 SysInfo->showInternalIP;
 
 # Exhibit network information:
@@ -44,16 +46,21 @@ package SysInfo;
 
 sub showHostname {
 	my $class = shift;
-	my $hostname = `hostname`;
-	$log->exhibit("Server hostname",$hostname);
+	$log->exhibit("Server hostname",`hostname`);
 	}
 
-# display the external IP addresses
+# display the external IP address (IPv4)
 
-sub showExternalIP {
+sub showExternalIPv4 {
 	my $class = shift;
-	my $ipv4 = `curl -s -4 icanhazip.com`;
-	$log->exhibit("External IP (IPv4)",$ipv4);
+	$log->exhibit("External IP (IPv4)",`curl -s -4 icanhazip.com`);
+	}
+
+# display the external IP address (IPv6)
+
+sub showExternalIPv6 {
+	my $class = shift;
+	$log->exhibit("External IP (IPv6)",`curl -s -6 icanhazip.com`);
 	}
 
 # display the internal (eth0) IP address
