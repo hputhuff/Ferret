@@ -20,48 +20,88 @@ our $log = new Console;
 
 $log->header;
 SysInfo->showSystemInformation;			# display system specifics
+NetInfo->showNetworkInformation;		# display network specifics
 $log->footer;
 exit;
 
-##
+#########################################################
 # Dig for system information (hostname, IPs, etc.)
 #
 package SysInfo;
 
 # display information about the system/server
-
 sub showSystemInformation {
 	my $class = shift;
-	$class->showHostname;
+	$log->exhibit("System:");
+	$class->showHostname;		# name of this server
+	$class->showProcessor;		# CPU details
+	$class->showMemory;			# RAM details
+	$class->showStorage;		# Disk storage details
+	$class->showExecutive;		# operating system
+	}
+
+# display the hostname in use by the system
+sub showHostname {
+	my $class = shift;
+	$log->exhibit("Server hostname",`hostname`);
+	}
+
+# display the processor & features
+sub showProcessor {
+	my $class = shift;
+	my $data = `cat /proc/cpuinfo`;
+	my ($processor,$cores);
+	$data =~ /model name\s+:\s(.+)\n/i; $processor = $1;
+	$data =~ /^.*processor\s+:\s(\d+)\s/is; $cores = $1+1;
+	$log->exhibit("Processor","$processor, $cores cores");
+	}
+
+# display the RAM memory
+sub showMemory {
+	}
+
+# display the disk storage
+sub showStorage {
+	}
+
+# display the operating system
+sub showExecutive {
+	my $class = shift;
+	my $file = (-f "/etc/redhat-release") ? "/etc/redhat-release" : "/etc/issue";
+	my $os;
+	open FILE,$file; $os = <FILE>; close FILE;
+	$os =~ /(.+?)(\s\\)/;
+	$log->exhibit("OS",$1);
+	}
+
+#########################################################
+# Dig for network information (IPs, listeners,etc.)
+#
+package NetInfo;
+
+# display information about the network
+sub showNetworkInformation {
+	my $class = shift;
+	$log->exhibit("Network:");
 	$class->showExternalIPv4;
 	$class->showExternalIPv6;
 	$class->showNetworkIP;
 	$class->showPrivateIP;
 	}
 
-# display the hostname in use by the system
-
-sub showHostname {
-	my $class = shift;
-	$log->exhibit("Server hostname",`hostname`);
-	}
-
 # display the external IP address (IPv4)
-
 sub showExternalIPv4 {
 	my $class = shift;
 	$log->exhibit("External IP (IPv4)",`curl -s -4 icanhazip.com`);
 	}
 
 # display the external IP address (IPv6)
-
 sub showExternalIPv6 {
 	my $class = shift;
 	$log->exhibit("External IP (IPv6)",`curl -s -6 icanhazip.com`);
 	}
 
 # display the network (eth0) IP address
-
 sub showNetworkIP {
 	my $class = shift;
 	`ip addr` =~ /eth0.+?inet\s+(\d+\.\d+\.\d+\.\d+)/is;
@@ -69,7 +109,6 @@ sub showNetworkIP {
 	}
 
 # display the private (eth1) IP address
-
 sub showPrivateIP {
 	my $class = shift;
 	`ip addr` =~ /eth1.+?inet\s+(\d+\.\d+\.\d+\.\d+)/is;
@@ -179,15 +218,21 @@ sub footer {
 	}
 
 ##
-# exhibit a value with a label
+# exhibit a label (& value)
 #
 #	@param string $label			: label of the value
+#	@param mixed $value			: (optional) value to show
 #
 sub exhibit {
 	my ($this,$label,$value) = @_;
-	my $trailer = (length($label) >= LABEL_SIZE) ? "" :	(' ' x (LABEL_SIZE - length($label)));
-	$value =~ s/\s*//g;
-	$this->write($label.$trailer.": ".$this->{bold}.$value.$this->{normal});
+	my $trailer = (length($label) >= LABEL_SIZE) ? "" :	(' 'x(LABEL_SIZE-length($label)));
+	if (substr($label,-1) eq ':') { #subheading
+		$this->write($this->{bold}.$label.$this->{normal});
+		}
+	else { #label & value
+		$value =~ s/[\t\r\n]//g;
+		$this->write(' '.$label.$trailer." ".$this->{bold}.$value.$this->{normal});
+		}
 	}
 
 -1;
