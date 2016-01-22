@@ -70,8 +70,11 @@ sub showExecutive {
 	my $file = (-f "/etc/redhat-release") ? "/etc/redhat-release" : "/etc/issue";
 	my $os;
 	open FILE,$file; $os = <FILE>; close FILE;
-	$os =~ /(.+?)(\s\\)/;
-	$log->exhibit("OS",$1);
+	if ($os =~ /\\/) { # this occurs with Mint & possibly Ubuntu
+		$os =~ /^(.+?)(\s\\.*)/;
+		$os = $1;
+		}
+	$log->exhibit("Operating System",$os);
 	}
 
 #########################################################
