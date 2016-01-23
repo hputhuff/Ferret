@@ -78,7 +78,7 @@ sub memory {
 	close MEMINFO;
 	$total =~ /(\d+)/; $total = sprintf("%.2f",($1/1000000.0));
 	$free =~ /(\d+)/; $free = sprintf("%.2f",($1/1000000.0));
-	$log->exhibit("RAM","$total GB, $free GB free");
+	$log->exhibit("RAM",$total."G, ".$free."G free");
 	}
 
 # display the disk storage
@@ -88,7 +88,7 @@ sub storage {
 	my $line = `df -hl | grep /\$`;
 	$line =~ /.+?(\d+[KMG]).+?(\d+[KMG]).+?(\d+[KMG])/i;
 	$size = $1; $used = $2; $free = $3;
-	$log->exhibit("Disk Storage","$size, used: $used, free: $free");
+	$log->exhibit("Disk Storage","$size, $used used, $free free");
 	}
 
 # display the operating system
