@@ -8,6 +8,8 @@
 # ----------------------------------------
 #	ferret.pl: dig out system information
 #	run with: perl <(curl -ks https://raw.githubusercontent.com/hputhuff/Ferret/master/ferret.pl)
+#	options:
+#		-t or --notimes = don't print times
 #	January 2016 by Harley H. Puthuff
 #	Copyright 2016, Harley H. Puthuff
 #
@@ -16,38 +18,49 @@ use strict;
 use feature "switch";
 no if $] >= 5.017011, warnings => 'experimental::smartmatch';
 
-our $log = new Console;
+our $options = {					# command line options
+	notimes => 0					# don't print times
+	};
+our $log = new Console;				# output object
 
-$log->header;
-SysInfo->showSystemInformation;			# display system specifics
-NetInfo->showNetworkInformation;		# display network specifics
-$log->footer;
+parseOptions();
+$log->header unless $options->{notimes};
+System->show;		# display system specifics
+Network->show;		# display network specifics
+$log->footer unless $options->{notimes};
 exit;
 
-#########################################################
+# parse the command line and set options
+sub parseOptions {
+	foreach (@ARGV) {
+		$options->{notimes} = 1 if (/^\-t|\-\-notimes$/);
+		}
+	}
+
+##
 # Dig for system information (hostname, IPs, etc.)
 #
-package SysInfo;
+package System;
 
 # display information about the system/server
-sub showSystemInformation {
+sub show {
 	my $class = shift;
 	$log->exhibit("System:");
-	$class->showHostname;		# name of this server
-	$class->showProcessor;		# CPU details
-	$class->showMemory;			# RAM details
-	$class->showStorage;		# Disk storage details
-	$class->showExecutive;		# operating system
+	$class->hostname;		# name of this server
+	$class->processor;		# CPU details
+	$class->memory;			# RAM details
+	$class->storage;		# Disk storage details
+	$class->executive;		# operating system
 	}
 
 # display the hostname in use by the system
-sub showHostname {
+sub hostname {
 	my $class = shift;
 	$log->exhibit("Server hostname",`hostname`);
 	}
 
 # display the processor & features
-sub showProcessor {
+sub processor {
 	my $class = shift;
 	my $data = `cat /proc/cpuinfo`;
 	my ($processor,$cores);
@@ -56,61 +69,74 @@ sub showProcessor {
 	$log->exhibit("Processor","$processor, $cores cores");
 	}
 
-# display the RAM memory
-sub showMemory {
+# display the RAM size
+sub memory {
+	my $class = shift;
+	my ($total,$free);
+	open MEMINFO,"/proc/meminfo" or return;
+	$total = <MEMINFO>; $free = <MEMINFO>;
+	close MEMINFO;
+	$total =~ /(\d+)/; $total = sprintf("%.2f",($1/1000000.0));
+	$free =~ /(\d+)/; $free = sprintf("%.2f",($1/1000000.0));
+	$log->exhibit("RAM","$total GB, $free GB free");
 	}
 
 # display the disk storage
-sub showStorage {
+sub storage {
+	my $class = shift;
+	my ($size,$used,$free,$avail);
+	my $line = `df -hl | grep /\$`;
+	$line =~ /.+?(\d+[KMG]).+?(\d+[KMG]).+?(\d+[KMG])/i;
+	$size = $1; $used = $2; $free = $3;
+	$log->exhibit("Disk Storage","$size, used: $used, free: $free");
 	}
 
 # display the operating system
-sub showExecutive {
+sub executive {
 	my $class = shift;
 	my $file = (-f "/etc/redhat-release") ? "/etc/redhat-release" : "/etc/issue";
 	my $os;
 	open FILE,$file; $os = <FILE>; close FILE;
 	$os =~ s/\\[A-Za-z0-9]//g;	# strip escape sequences
-	$os =~ s/\s+$//;			# strip trailing white space
 	$log->exhibit("Operating System",$os);
 	}
 
-#########################################################
+##
 # Dig for network information (IPs, listeners,etc.)
 #
-package NetInfo;
+package Network;
 
 # display information about the network
-sub showNetworkInformation {
+sub show {
 	my $class = shift;
 	$log->exhibit("Network:");
-	$class->showExternalIPv4;
-	$class->showExternalIPv6;
-	$class->showNetworkIP;
-	$class->showPrivateIP;
+	$class->externalIPv4;
+	$class->externalIPv6;
+	$class->networkIP;
+	$class->privateIP;
 	}
 
 # display the external IP address (IPv4)
-sub showExternalIPv4 {
+sub externalIPv4 {
 	my $class = shift;
 	$log->exhibit("External IP (IPv4)",`curl -s -4 icanhazip.com`);
 	}
 
 # display the external IP address (IPv6)
-sub showExternalIPv6 {
+sub externalIPv6 {
 	my $class = shift;
 	$log->exhibit("External IP (IPv6)",`curl -s -6 icanhazip.com`);
 	}
 
 # display the network (eth0) IP address
-sub showNetworkIP {
+sub networkIP {
 	my $class = shift;
 	`ip addr` =~ /eth0.+?inet\s+(\d+\.\d+\.\d+\.\d+)/is;
 	$log->exhibit("Network IP (eth0)",$1);
 	}
 
 # display the private (eth1) IP address
-sub showPrivateIP {
+sub privateIP {
 	my $class = shift;
 	`ip addr` =~ /eth1.+?inet\s+(\d+\.\d+\.\d+\.\d+)/is;
 	$log->exhibit("Private IP (eth1)",$1);
@@ -120,7 +146,7 @@ sub showPrivateIP {
 # Console.pm - Console (STDOUT) handler
 #
 package Console;
-use constant DEFAULT_PREFIX		=> '=';		# default line prefix
+use constant DEFAULT_PREFIX		=> ':';		# default line prefix
 use constant LABEL_SIZE			=> 24;		# max length of value label
 
 ##
@@ -231,8 +257,9 @@ sub exhibit {
 		$this->write($this->{bold}.$label.$this->{normal});
 		}
 	else { #label & value
-		$value =~ s/\s+$//;
-		$this->write(' '.$label.$trailer." ".$this->{bold}.$value.$this->{normal});
+		$value =~ tr/\x20-\x7f//cd;	# only printable
+		$value =~ s/\s+$//;			# w/o trailing white space
+		$this->write(" ".$label.$trailer." ".$this->{bold}.$value.$this->{normal});
 		}
 	}
 
