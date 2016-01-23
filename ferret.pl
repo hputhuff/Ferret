@@ -231,7 +231,7 @@ sub exhibit {
 		$this->write($this->{bold}.$label.$this->{normal});
 		}
 	else { #label & value
-		$value =~ s/[\t\r\n]//g;
+		$value =~ s/\s+$//;
 		$this->write(' '.$label.$trailer." ".$this->{bold}.$value.$this->{normal});
 		}
 	}
