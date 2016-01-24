@@ -129,7 +129,7 @@ sub dashboard {
 	my $class = shift;
 	my ($test,$cp);
 	# check for plesk
-	$test = $conf->{isRedhat} ?  `rpm -q psa` : `dpkg -l psa 2>/dev/null`;
+	$test = $conf->{isRedhat} ?  `rpm -q psa 2>/dev/null` : `dpkg -l psa 2>/dev/null`;
 	if ($test =~ /psa/i) {
 		$conf->{isPlesk} = 1;
 		$cp = $test;
