@@ -18,11 +18,25 @@ use strict;
 use feature "switch";
 no if $] >= 5.017011, warnings => 'experimental::smartmatch';
 
-our $options = {					# command line options
-	notimes => 0					# don't print times
+# command line options:
+our $options = {
+	notimes => 0			# don't print times
 	};
+	
+# evaluated configuration settings:
+our $conf = {
+	hostname => undef,		# hostname for server
+	isRedhat => 1,			# Redhat or CentOs
+	isUbuntu => 0,			# Ubuntu, Mint, Debian
+	isPlesk => 0,			# Plesk is running
+	isCpanel => 0,			# cPanel is running
+	isWebmin => 0,			# Webmin is running
+	};
+
+# object for handling output
 our $log = new Console;				# output object
 
+# mainline process
 parseOptions();
 $log->header unless $options->{notimes};
 System->show;		# display system specifics
@@ -38,7 +52,7 @@ sub parseOptions {
 	}
 
 ##
-# Dig for system information (hostname, IPs, etc.)
+# Dig for system information (hostname, CPU, etc.)
 #
 package System;
 
@@ -51,12 +65,15 @@ sub show {
 	$class->memory;			# RAM details
 	$class->storage;		# Disk storage details
 	$class->executive;		# operating system
+	$class->dashboard;		# control panel
 	}
 
 # display the hostname in use by the system
 sub hostname {
 	my $class = shift;
-	$log->exhibit("Server hostname",`hostname`);
+	$conf->{hostname} = `hostname`;
+	$conf->{hostname} =~ s/\s+//g;
+	$log->exhibit("Server hostname",$conf->{hostname});
 	}
 
 # display the processor & features
@@ -94,11 +111,40 @@ sub storage {
 # display the operating system
 sub executive {
 	my $class = shift;
-	my $file = (-f "/etc/redhat-release") ? "/etc/redhat-release" : "/etc/issue";
 	my $os;
-	open FILE,$file; $os = <FILE>; close FILE;
+	if (-f "/etc/redhat-release") {
+		$conf->{isRedhat} = 1; $conf->{isUbuntu} = 0;
+		}
+	else {
+		$conf->{isRedhat} = 0; $conf->{isUbuntu} = 1;
+		}
+	open FILE,($conf->{isRedhat} ? "/etc/redhat-release" : "/etc/issue") or return;
+	$os = <FILE>; close FILE;
 	$os =~ s/\\[A-Za-z0-9]//g;	# strip escape sequences
 	$log->exhibit("Operating System",$os);
+	}
+	
+# display info about dashboard/control panel ()if any)
+sub dashboard {
+	my $class = shift;
+	my ($test,$cp);
+	# check for plesk
+	$test = $conf->{isRedhat} ?  `rpm -q psa` : `dpkg -l psa 2>/dev/null`;
+	if ($test =~ /psa/i) {
+		$conf->{isPlesk} = 1;
+		$cp = $test;
+		}
+	$test = `/usr/local/cpanel/cpanel -V 2>/dev/null`;
+	if ($test =~ /[A-Za-z]+/) {
+		$conf->{isCpanel} = 1;
+		$cp = $test;
+		}
+	if (-e "/usr/share/webmin") {
+		$conf->{isWebmin} = 1;
+		$cp = "Webmin";
+		}
+	$cp =~ s/\s+//g;
+	$log->exhibit("Control Panel",$cp);
 	}
 
 ##
