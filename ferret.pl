@@ -127,7 +127,7 @@ sub executive {
 # display info about dashboard/control panel ()if any)
 sub dashboard {
 	my $class = shift;
-	my ($test,$cp);
+	my ($test,$cp,$password,$url);
 	# check for plesk
 	$test = $conf->{isRedhat} ?  `rpm -q psa 2>/dev/null` : `dpkg -l psa 2>/dev/null`;
 	if ($test =~ /build/i) {
@@ -135,7 +135,7 @@ sub dashboard {
 		$cp = $test;
 		}
 	$test = `/usr/local/cpanel/cpanel -V 2>/dev/null`;
-	if ($test =~ /[A-Za-z]+/) {
+	if ($test =~ /[A-Za-z0-9]+/) {
 		$conf->{isCpanel} = 1;
 		$cp = $test;
 		}
@@ -143,8 +143,22 @@ sub dashboard {
 		$conf->{isWebmin} = 1;
 		$cp = "Webmin";
 		}
-	$cp =~ s/\s+//g;
+	$cp =~ s/\s+$//;
 	$log->exhibit("Control Panel",$cp);
+	if ($conf->{isPlesk}) {
+		$cp =~ /psa[ -]+(\d+\.\d+)/i;
+		$test = $1; $test =~ tr/[0-9]//cd;
+		if ($test le '1019') {
+			$password = `cat /etc/psa/.psa.shadow`;
+			}
+		else {
+			$password = `/usr/local/psa/bin/admin --show-password`;
+			}
+		$password =~ tr/[0-9]//cd;
+		$log->exhibit(" Plesk login","admin => $password");
+		$url = "http://".`curl -sk curlmyip.de`.":8880/login_up.php3?login_name=admin&passwd=$password";
+		$log->exhibit(" Plesk url",$url);
+		}
 	}
 
 ##
