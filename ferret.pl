@@ -130,7 +130,7 @@ sub dashboard {
 	my ($test,$cp);
 	# check for plesk
 	$test = $conf->{isRedhat} ?  `rpm -q psa 2>/dev/null` : `dpkg -l psa 2>/dev/null`;
-	if ($test =~ /psa/i) {
+	if ($test =~ /build/i) {
 		$conf->{isPlesk} = 1;
 		$cp = $test;
 		}
