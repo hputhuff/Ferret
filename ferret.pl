@@ -121,7 +121,8 @@ sub executive {
 	open FILE,($conf->{isRedhat} ? "/etc/redhat-release" : "/etc/issue") or return;
 	$os = <FILE>; close FILE;
 	$os =~ s/\\[A-Za-z0-9]//g;	# strip escape sequences
-	$os =~ s/\t|\s{2,}/ /g;
+	$os =~ tr/\t//d;
+	$os =~ s/\s{2,}/ /g;
 	$log->exhibit("Operating System",$os);
 	}
 	
