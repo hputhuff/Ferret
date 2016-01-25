@@ -72,7 +72,6 @@ sub show {
 sub hostname {
 	my $class = shift;
 	$conf->{hostname} = `hostname`;
-	$conf->{hostname} =~ s/\s+//g;
 	$log->exhibit("Server hostname",$conf->{hostname});
 	}
 
@@ -121,8 +120,6 @@ sub executive {
 	open FILE,($conf->{isRedhat} ? "/etc/redhat-release" : "/etc/issue") or return;
 	$os = <FILE>; close FILE;
 	$os =~ s/\\[A-Za-z0-9]//g;	# strip escape sequences
-	$os =~ tr/\t//d;
-	$os =~ s/\s{2,}/ /g;
 	$log->exhibit("Operating System",$os);
 	}
 	
@@ -145,7 +142,6 @@ sub dashboard {
 		$conf->{isWebmin} = 1;
 		$cp = "Webmin";
 		}
-	$cp =~ s/\s+$//;
 	$log->exhibit("Control Panel",$cp);
 	if ($conf->{isPlesk}) {
 		$cp =~ /psa[ -]+(\d+\.\d+)/i;
@@ -156,7 +152,6 @@ sub dashboard {
 		else {
 			$password = `/usr/local/psa/bin/admin --show-password`;
 			}
-		$password =~ s/\s+$//;
 		$log->exhibit(" Plesk login","admin => $password");
 		$url = "http://".`curl -sk curlmyip.de`.":8880/login_up.php3?login_name=admin&passwd=$password";
 		$log->exhibit(" Plesk url",$url);
@@ -320,7 +315,8 @@ sub exhibit {
 		}
 	else { #label & value
 		$value =~ tr/\x20-\x7f//cd;	# only printable
-		$value =~ s/\s+$//;			# w/o trailing white space
+		$value =~ s/\s{2,}/ /g;		# strip multiple spaces
+		$value =~ s/\s+$//;			# strip trailing white space
 		$this->write(" ".$label.$trailer." ".$this->{bold}.$value.$this->{normal});
 		}
 	}
