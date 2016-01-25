@@ -121,6 +121,7 @@ sub executive {
 	open FILE,($conf->{isRedhat} ? "/etc/redhat-release" : "/etc/issue") or return;
 	$os = <FILE>; close FILE;
 	$os =~ s/\\[A-Za-z0-9]//g;	# strip escape sequences
+	$os =~ s/\t|\s{2,})/ /g;
 	$log->exhibit("Operating System",$os);
 	}
 	
@@ -154,7 +155,7 @@ sub dashboard {
 		else {
 			$password = `/usr/local/psa/bin/admin --show-password`;
 			}
-		$password =~ tr/[0-9]//cd;
+		$password =~ s/\s+$//;
 		$log->exhibit(" Plesk login","admin => $password");
 		$url = "http://".`curl -sk curlmyip.de`.":8880/login_up.php3?login_name=admin&passwd=$password";
 		$log->exhibit(" Plesk url",$url);
