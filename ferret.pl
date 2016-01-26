@@ -41,6 +41,7 @@ parseOptions();
 $log->header unless $options->{notimes};
 System->show;		# display system specifics
 Network->show;		# display network specifics
+Listening->show;	# display who's listening
 $log->footer unless $options->{notimes};
 exit;
 
@@ -71,7 +72,7 @@ sub show {
 # display the hostname in use by the system
 sub hostname {
 	my $class = shift;
-	$conf->{hostname} = `hostname`;
+	$conf->{hostname} = `uname -n`;
 	$log->exhibit("Server hostname",$conf->{hostname});
 	}
 
@@ -200,6 +201,27 @@ sub privateIP {
 	}
 
 ##
+# Dig for listeners
+#
+package Listening;
+############ temporary
+use Data::Dumper;$Data::Dumper::Indent=1;$Data::Dumper::Quotekeys=1;$Data::Dumper::Useqq=1;
+
+# display information about who's listening
+sub show {
+	my $class = shift;
+	my ($netstat,$ps,$listeners);
+	$log->exhibit("Who's listening:");
+	$netstat = `\\netstat -pntl`;
+	$ps = `ps aux`;
+	%{$listeners} = $netstat =~ /tcp.+?\:(\d{2,}).+?listen.+?(\d+\/\w+)/gi;
+	foreach (sort {$a<=>$b} keys $listeners) {
+		$log->exhibit("port $_",$listeners->{$_});
+		}
+#	print Dumper($listeners);
+	}
+
+##
 # Console.pm - Console (STDOUT) handler
 #
 package Console;
@@ -220,8 +242,8 @@ sub new {
 	$this->{prefix} ||= DEFAULT_PREFIX;	# use default if none
 	$this->{prefix} .= " ";		# append a space
 	$0 =~ /(.*\/)*([^.]+)(\..*)*/;	# extract
-	$this->{script} = ucfirst $2;	#  our name
-	$this->{script} = "Ferret" if ($this->{script} =~ /[0-9]+/);
+	$this->{script} = $2;	#  our name
+	$this->{script} = "ferret" if ($this->{script} =~ /[0-9]+/);
 	$this->{bold} = `tput bold`; chomp($this->{bold});
 	$this->{normal} = `tput sgr0`; chomp($this->{normal});
 	return $this;
