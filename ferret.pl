@@ -57,6 +57,8 @@ sub parseOptions {
 #
 package System;
 
+use constant MEGABYTE => 1048576.0;	# one megabyte
+
 # display information about the system/server
 sub show {
 	my $class = shift;
@@ -93,8 +95,8 @@ sub memory {
 	open MEMINFO,"/proc/meminfo" or return;
 	$total = <MEMINFO>; $free = <MEMINFO>;
 	close MEMINFO;
-	$total =~ /(\d+)/; $total = sprintf("%.2f",($1/1000000.0));
-	$free =~ /(\d+)/; $free = sprintf("%.2f",($1/1000000.0));
+	$total =~ /(\d+)/; $total = sprintf("%.2f",($1/MEGABYTE)); # in GB
+	$free =~ /(\d+)/; $free = sprintf("%.2f",($1/MEGABYTE));   # in GB
 	$log->exhibit("RAM",$total."G, ".$free."G free");
 	}
 
