@@ -215,7 +215,7 @@ sub show {
 	$netstat = `\\netstat -pntl`;
 	$ps = `ps aux`;
 	%{$listeners} = $netstat =~ /tcp.+?\:(\d{2,}).+?listen.+?(\d+\/\w+)/gi;
-	foreach (sort {$a<=>$b} keys $listeners) {
+	foreach (sort {$a<=>$b} keys %{$listeners}) {
 		$log->exhibit("port $_",$listeners->{$_});
 		}
 #	print Dumper($listeners);
