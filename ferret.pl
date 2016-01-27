@@ -15,8 +15,6 @@
 #
 
 use strict;
-use feature "switch";
-no if $] >= 5.017011, warnings => 'experimental::smartmatch';
 
 # command line options:
 our $options = {
@@ -212,13 +210,15 @@ use Data::Dumper;$Data::Dumper::Indent=1;$Data::Dumper::Quotekeys=1;$Data::Dumpe
 # display information about who's listening
 sub show {
 	my $class = shift;
-	my ($netstat,$ps,$listeners);
+	my ($netstat,$ps,$listeners,$daemons);
 	$log->exhibit("Who's listening:");
 	$netstat = `\\netstat -pntl`;
 	$ps = `ps aux`;
+	$daemons = {};
 	%{$listeners} = $netstat =~ /tcp.+?\:(\d{2,}).+?listen.+?(\d+\/\w+)/gi;
 	foreach (sort {$a<=>$b} keys %{$listeners}) {
-		$log->exhibit("port $_",$listeners->{$_});
+		my ($process,$name) = split /\//,$listeners->{$_};
+		$log->exhibit("port $_","$name #$process");
 		}
 #	print Dumper($listeners);
 	}
@@ -330,6 +330,7 @@ sub footer {
 #
 #	@param string $label			: label of the value
 #	@param mixed $value			: (optional) value to show
+#	Note to self: any $label value ending in ':' is always a subheading
 #
 sub exhibit {
 	my ($this,$label,$value) = @_;
