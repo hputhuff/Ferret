@@ -14,6 +14,9 @@
 #	Copyright 2016, Harley H. Puthuff
 #
 
+# testing only #
+#use Data::Dumper;$Data::Dumper::Indent=1;$Data::Dumper::Quotekeys=1;$Data::Dumper::Useqq=1;
+
 use strict;
 
 # command line options:
@@ -134,11 +137,13 @@ sub dashboard {
 		$conf->{isPlesk} = 1;
 		$cp = $test;
 		}
+	# check for cPanel
 	$test = `/usr/local/cpanel/cpanel -V 2>/dev/null`;
 	if ($test =~ /[A-Za-z0-9]+/) {
 		$conf->{isCpanel} = 1;
 		$cp = $test;
 		}
+	# check for Webmin
 	if (-e "/usr/share/webmin") {
 		$conf->{isWebmin} = 1;
 		$cp = "Webmin";
@@ -204,21 +209,19 @@ sub privateIP {
 # Dig for listeners
 #
 package Listening;
-############ temporary
-use Data::Dumper;$Data::Dumper::Indent=1;$Data::Dumper::Quotekeys=1;$Data::Dumper::Useqq=1;
 
 # display information about who's listening
 sub show {
 	my $class = shift;
-	my ($netstat,$ps,$listeners,$daemons);
+	my ($netstat,$ps,$listeners,$process,$name);
 	$log->exhibit("Who's listening:");
 	$netstat = `\\netstat -pntl`;
-	$ps = `ps aux`;
-	$daemons = {};
+	$ps = `\\ps aux`;
 	%{$listeners} = $netstat =~ /tcp.+?\:(\d{2,}).+?listen.+?(\d+\/\w+)/gi;
 	foreach (sort {$a<=>$b} keys %{$listeners}) {
-		my ($process,$name) = split /\//,$listeners->{$_};
-		$log->exhibit("port $_","$name #$process");
+		($process,$name) = split /\//,$listeners->{$_};
+		$ps =~ /^(\w+)\s+$process(\s+\S+){8}\s+(\S+).+$/m;
+		$log->exhibit("port $_","$3 as $1");
 		}
 #	print Dumper($listeners);
 	}
@@ -228,7 +231,7 @@ sub show {
 #
 package Console;
 use constant DEFAULT_PREFIX		=> ':';		# default line prefix
-use constant LABEL_SIZE			=> 24;		# max length of value label
+use constant LABEL_SIZE			=> 20;		# max length of value label
 
 ##
 # Constructor:
