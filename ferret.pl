@@ -10,7 +10,7 @@
 #	run with: perl <(curl -ks https://raw.githubusercontent.com/hputhuff/Ferret/master/ferret.pl)
 #	options:
 #		-t or --notimes = don't print times
-#	January 2016 by Harley H. Puthuff
+#	February 2016 by Harley H. Puthuff
 #	Copyright 2016, Harley H. Puthuff
 #
 
@@ -223,7 +223,6 @@ sub show {
 		$ps =~ /^(\w+)\s+$process(\s+\S+){8}\s+(\S+).+$/m;
 		$log->exhibit("port $_","$3 as $1");
 		}
-#	print Dumper($listeners);
 	}
 
 ##
