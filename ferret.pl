@@ -106,7 +106,7 @@ sub storage {
 	my $class = shift;
 	my ($size,$used,$free,$avail);
 	my $line = `df -hl | grep /\$`;
-	$line =~ /.+?(\d+[KMG]).+?(\d+[KMG]).+?(\d+[KMG])/i;
+	$line =~ /.+?([0-9.]+[KMG]).+?([0-9.]+[KMG]).+?([0-9.]+[KMG])/i;
 	$size = $1; $used = $2; $free = $3;
 	$log->exhibit("Disk Storage","$size, $used used, $free free");
 	}
