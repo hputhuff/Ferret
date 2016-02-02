@@ -169,6 +169,8 @@ sub dashboard {
 #
 package Network;
 
+use constant GETMYIP	=> 'curlmyip.de';	# place to get my IP
+
 # display information about the network
 sub show {
 	my $class = shift;
@@ -182,7 +184,7 @@ sub show {
 # display the external IP address (IPv4)
 sub externalIPv4 {
 	my $class = shift;
-	$log->exhibit("External IP (IPv4)",`curl -s -4 icanhazip.com`);
+	$log->exhibit("External IP (IPv4)",`curl -s -4 curlmyip.de`);
 	}
 
 # display the external IP address (IPv6)
