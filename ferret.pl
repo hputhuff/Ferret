@@ -217,7 +217,7 @@ sub show {
 	$log->exhibit("Who's listening:");
 	$netstat = `\\netstat -pntl`;
 	$ps = `\\ps aux`;
-	%{$listeners} = $netstat =~ /tcp.+?\:(\d{2,}).+?listen.+?(\d+\/\w+)/gi;
+	%{$listeners} = $netstat =~ /tcp.+?\:+(\d{2,}).+?listen.+?(\d+\/\w+)/gi;
 	foreach (sort {$a<=>$b} keys %{$listeners}) {
 		($process,$name) = split /\//,$listeners->{$_};
 		$ps =~ /^(\w+)\s+$process(\s+\S+){8}\s+(\S+).+$/m;
