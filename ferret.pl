@@ -169,8 +169,6 @@ sub dashboard {
 #
 package Network;
 
-use constant GETMYIP	=> 'curlmyip.de';	# place to get my IP
-
 # display information about the network
 sub show {
 	my $class = shift;
