@@ -11,6 +11,7 @@
 #	options:
 #		-t or --notimes = don't print times
 #	February 2016 by Harley H. Puthuff
+#	with a lot of ideas from Samir Jafferali's shell script: rsi.sh
 #
 
 # testing only #
