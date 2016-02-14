@@ -11,7 +11,6 @@
 #	options:
 #		-t or --notimes = don't print times
 #	February 2016 by Harley H. Puthuff
-#	Copyright 2016, Harley H. Puthuff
 #
 
 # testing only #
@@ -141,7 +140,7 @@ sub dashboard {
 	$test = `/usr/local/cpanel/cpanel -V 2>/dev/null`;
 	if ($test =~ /[A-Za-z0-9]+/) {
 		$conf->{isCpanel} = 1;
-		$cp = $test;
+		$cp = "cPanel ".$test;
 		}
 	# check for Webmin
 	if (-e "/usr/share/webmin") {
