@@ -15,7 +15,7 @@
 #
 
 # testing only #
-#use Data::Dumper;$Data::Dumper::Indent=1;$Data::Dumper::Quotekeys=1;$Data::Dumper::Useqq=1;
+use Data::Dumper;$Data::Dumper::Indent=1;$Data::Dumper::Quotekeys=1;$Data::Dumper::Useqq=1;
 
 use strict;
 
@@ -27,15 +27,20 @@ our $options = {
 # evaluated configuration settings:
 our $conf = {
 	hostname => undef,		# hostname for server
-	isRedhat => 1,			# Redhat or CentOs
-	isUbuntu => 0,			# Ubuntu, Mint, Debian
-	isPlesk => 0,			# Plesk is running
-	isCpanel => 0,			# cPanel is running
-	isWebmin => 0,			# Webmin is running
+	redhat => 0,			# Redhat or CentOs
+	ubuntu => 0,			# Ubuntu, Mint, Debian
+	plesk => 0,				# Plesk is running
+	cpanel => 0,			# cPanel is running
+	webmin => 0,			# Webmin is running
+	apache2 => 0,			# running apache 2
+	httpd => 0,				# running httpd
+	nginx => 0,				# running nginx
+	postfix => 0,			# running postfix
+	sendmail => 0			# running sendmail
 	};
 
 # object for handling output
-our $log = new Console;				# output object
+our $log = new Console;
 
 # mainline process
 parseOptions();
@@ -43,6 +48,7 @@ $log->header unless $options->{notimes};
 System->show;		# display system specifics
 Network->show;		# display network specifics
 Listening->show;	# display who's listening
+print Dumper($conf);
 $log->footer unless $options->{notimes};
 exit;
 
@@ -75,7 +81,7 @@ sub show {
 # display the hostname in use by the system
 sub hostname {
 	my $class = shift;
-	$conf->{hostname} = `uname -n`;
+	$conf->{hostname} = `uname -n`; chomp $conf->{hostname};
 	$log->exhibit("Server hostname",$conf->{hostname});
 	}
 
@@ -116,12 +122,12 @@ sub executive {
 	my $class = shift;
 	my $os;
 	if (-f "/etc/redhat-release") {
-		$conf->{isRedhat} = 1; $conf->{isUbuntu} = 0;
+		$conf->{redhat} = 1; $conf->{ubuntu} = 0;
 		}
 	else {
-		$conf->{isRedhat} = 0; $conf->{isUbuntu} = 1;
+		$conf->{redhat} = 0; $conf->{ubuntu} = 1;
 		}
-	open FILE,($conf->{isRedhat} ? "/etc/redhat-release" : "/etc/issue") or return;
+	open FILE,($conf->{redhat} ? "/etc/redhat-release" : "/etc/issue") or return;
 	$os = <FILE>; close FILE;
 	$os =~ s/\\[A-Za-z0-9]//g;	# strip escape sequences
 	$log->exhibit("Operating System",$os);
@@ -132,24 +138,24 @@ sub dashboard {
 	my $class = shift;
 	my ($test,$cp,$password,$url);
 	# check for plesk
-	$test = $conf->{isRedhat} ?  `rpm -q psa 2>/dev/null` : `dpkg -l psa 2>/dev/null`;
+	$test = $conf->{redhat} ?  `rpm -q psa 2>/dev/null` : `dpkg -l psa 2>/dev/null`;
 	if ($test =~ /build/i) {
-		$conf->{isPlesk} = 1;
+		$conf->{plesk} = 1;
 		$cp = $test;
 		}
 	# check for cPanel
 	$test = `/usr/local/cpanel/cpanel -V 2>/dev/null`;
 	if ($test =~ /[A-Za-z0-9]+/) {
-		$conf->{isCpanel} = 1;
+		$conf->{cpanel} = 1;
 		$cp = "cPanel ".$test;
 		}
 	# check for Webmin
 	if (-e "/usr/share/webmin") {
-		$conf->{isWebmin} = 1;
+		$conf->{webmin} = 1;
 		$cp = "Webmin";
 		}
 	$log->exhibit("Control Panel",$cp);
-	if ($conf->{isPlesk}) {
+	if ($conf->{plesk}) {
 		$cp =~ /psa[ -]+(\d+\.\d+)/i;
 		$test = $1; $test =~ tr/[0-9]//cd;
 		if ($test le '1019') {
@@ -213,15 +219,27 @@ package Listening;
 # display information about who's listening
 sub show {
 	my $class = shift;
-	my ($netstat,$ps,$listeners,$process,$name);
+	my ($netstat,$ps,$listeners,$port,$process,$name,$daemon,$user);
 	$log->exhibit("Who's listening:");
 	$netstat = `\\netstat -pntl`;
 	$ps = `\\ps aux`;
 	%{$listeners} = $netstat =~ /tcp.+?\:+(\d{2,}).+?listen.+?(\d+\/\w+)/gi;
 	foreach (sort {$a<=>$b} keys %{$listeners}) {
+		$port = $_;
 		($process,$name) = split /\//,$listeners->{$_};
 		$ps =~ /^(\w+)\s+$process(\s+\S+){8}\s+(\S+).+$/m;
-		$log->exhibit("port $_","$3 as $1");
+		$daemon = $3; $user = $1;
+		$log->exhibit("port $port","$daemon as $user");
+		# set some flags
+		if ($port =~ /(80|443|7080)/) {
+			$conf->{apache2} = 1 if ($daemon =~ /apache2/i);
+			$conf->{httpd} = 1 if ($daemon =~ /httpd/i);
+			$conf->{nginx} = 1 if ($daemon =~ /nginx/i);
+			}
+		if ($port =~ /(25|465|587)/) {
+			$conf->{postfix} = 1 if ($daemon =~ /postfix/i);
+			$conf->{sendmail} = 1 if ($daemon =~ /sendmail/i);
+			}
 		}
 	}
 
