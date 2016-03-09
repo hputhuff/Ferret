@@ -37,7 +37,7 @@ our $conf = {
 	nginx => 0,				# running nginx
 	postfix => 0,			# running postfix
 	sendmail => 0,			# running sendmail
-	mysqld = 0				# running mysql server
+	mysqld => 0				# running mysql server
 	};
 
 # object for handling output
