@@ -227,7 +227,7 @@ sub show {
 	foreach (sort {$a<=>$b} keys %{$listeners}) {
 		$port = $_;
 		($process,$name) = split /\//,$listeners->{$_};
-		$ps =~ /^(\w+)\s+$process(\s+\S+){8}\s+(\S+).+$/m;
+		$ps =~ /^(\w+)\s+$process(\s+\S+){8}\s+(\S+)\s+$/m;
 		$daemon = $3; $user = $1;
 		$log->exhibit("port $port","$daemon as $user");
 		# set some flags
