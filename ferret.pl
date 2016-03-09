@@ -10,7 +10,7 @@
 #	run with: perl <(curl -ks https://raw.githubusercontent.com/hputhuff/Ferret/master/ferret.pl)
 #	options:
 #		-t or --notimes = don't print times
-#	February 2016 by Harley H. Puthuff
+#	March 2016 by Harley H. Puthuff
 #	with a lot of ideas from Samir Jafferali's shell script: rsi.sh
 #
 
@@ -36,7 +36,8 @@ our $conf = {
 	httpd => 0,				# running httpd
 	nginx => 0,				# running nginx
 	postfix => 0,			# running postfix
-	sendmail => 0			# running sendmail
+	sendmail => 0,			# running sendmail
+	mysqld = 0				# running mysql server
 	};
 
 # object for handling output
@@ -230,7 +231,7 @@ sub show {
 		$ps =~ /^(\w+)\s+$process(\s+\S+){8}\s+(\S+)/m;
 		$daemon = $3; $user = $1;
 		$log->exhibit("port $port","$daemon as $user");
-		# set some flags
+		# try to glean info about the system from listeners #
 		if ($port =~ /(80|443|7080)/) {
 			$conf->{apache2} = 1 if ($daemon =~ /apache2/i);
 			$conf->{httpd} = 1 if ($daemon =~ /httpd/i);
@@ -239,6 +240,9 @@ sub show {
 		if ($port =~ /(25|465|587)/) {
 			$conf->{postfix} = 1 if ($daemon =~ /postfix/i);
 			$conf->{sendmail} = 1 if ($daemon =~ /sendmail/i);
+			}
+		if ($port =~ /3306/) {
+			$conf->{mysqld} = 1 if ($daemon =~ /mysql/i);
 			}
 		}
 	}
