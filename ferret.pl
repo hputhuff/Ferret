@@ -9,7 +9,9 @@
 #	ferret.pl: dig out system information
 #	run with: perl <(curl -ks https://raw.githubusercontent.com/hputhuff/Ferret/master/ferret.pl)
 #	options:
-#		-t or --notimes = don't print times
+#		-n or --netstat = show network connections
+#		-t or --times = show start/stop times
+#		-w or --websites = show hosted website details
 #	March 2016 by Harley H. Puthuff
 #	with a lot of ideas from Samir Jafferali's shell script: rsi.sh
 #
@@ -21,7 +23,9 @@ use strict;
 
 # command line options:
 our $options = {
-	notimes => 0			# don't print times
+	netstat => 0,			# show network connections
+	times => 0,				# show start/stop times
+	websites => 0,			# show hosted websites
 	};
 	
 # evaluated configuration settings:
@@ -45,18 +49,22 @@ our $log = new Console;
 
 # mainline process
 parseOptions();
-$log->header unless $options->{notimes};
-System->show;		# display system specifics
-Network->show;		# display network specifics
-Listening->show;	# display who's listening
+$log->header if $options->{times};
+System->show;
+Network->show;
+Listening->show;
+Netstat->show if $options->{netstat};
+Websites->show if $options->{websites};
 print Dumper($conf);
-$log->footer unless $options->{notimes};
+$log->footer if $options->{times};
 exit;
 
 # parse the command line and set options
 sub parseOptions {
 	foreach (@ARGV) {
-		$options->{notimes} = 1 if (/^\-t|\-\-notimes$/);
+		$options->{times} = 1 if (/\-\-times|t/i);
+		$options->{netstat} = 1 if (/\-\-netstat|n/i);
+		$options->{websites} = 1 if (/\-\-websites|w/i);
 		}
 	}
 
@@ -245,6 +253,28 @@ sub show {
 			$conf->{mysqld} = 1 if ($daemon =~ /mysql/i);
 			}
 		}
+	}
+
+##
+# Dig for network connections
+#
+package Netstat;
+
+##
+# Show connections
+#
+sub show {
+	}
+
+##
+# Dig for hosted websites
+#
+package Websites;
+
+##
+# Show hosted websites
+#
+sub show {
 	}
 
 ##
