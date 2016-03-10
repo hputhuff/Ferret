@@ -260,10 +260,19 @@ sub show {
 #
 package Netstat;
 
-##
 # Show connections
-#
+
 sub show {
+	my $class = shift;
+	my ($netstat,$localIp,$localPort,$remoteIp,$remotePort,$vector);
+	$netstat = `\\netstat -n | grep tcp`;
+	while ($netstat =~ /^tcp\s+\d+\s+\d+\s+([0-9:.]+)\s+([0-9:.]+)/igm) {
+		($localIp,$localPort) = split /:/,$1;
+		($remoteIp,$remotePort) = split /:/,$2;
+		next if ($localIp eq $remoteIp);
+		$vector = ($localPort >= 1024) ? "==>" : "<==";
+		print "$localIp\[$localPort\] $vector $remoteIp\[$remotePort\]\n"
+		}
 	}
 
 ##
@@ -271,9 +280,8 @@ sub show {
 #
 package Websites;
 
-##
 # Show hosted websites
-#
+
 sub show {
 	}
 
