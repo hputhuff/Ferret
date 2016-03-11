@@ -48,6 +48,7 @@ our $conf = {
 our $log = new Console;
 
 # mainline process
+
 parseOptions();
 $log->header if $options->{times};
 System->show;
@@ -62,9 +63,15 @@ exit;
 # parse the command line and set options
 sub parseOptions {
 	foreach (@ARGV) {
-		$options->{times} = 1 if (/\-\-times|t/i);
-		$options->{netstat} = 1 if (/\-\-netstat|n/i);
-		$options->{websites} = 1 if (/\-\-websites|w/i);
+		if (/^--/) {
+			$options->{times} = 1 if (/times/);
+			$options->{netstat} = 1 if (/netstat/);
+			$options->{websites} = 1 if (/websites/);
+			next;
+			}
+		$options->{times} = 1 if (/t/);
+		$options->{netstat} = 1 if (/n/);
+		$options->{websites} = 1 if (/w/);
 		}
 	}
 
@@ -264,15 +271,49 @@ package Netstat;
 
 sub show {
 	my $class = shift;
-	my ($netstat,$localIp,$localPort,$remoteIp,$remotePort,$vector);
-	$netstat = `\\netstat -n | grep tcp`;
-	while ($netstat =~ /^tcp\s+\d+\s+\d+\s+([0-9:.]+)\s+([0-9:.]+)/igm) {
-		($localIp,$localPort) = split /:/,$1;
-		($remoteIp,$remotePort) = split /:/,$2;
+	my ($localIp,$localPort,$remoteIp,$remotePort,$incoming,$outgoing,$services);
+	$incoming = {}; $outgoing={};
+	while ((`\\netstat -n | grep tcp`) =~ /^tcp(\d+)*\s+\d+\s+\d+\s+([0-9:.]+)\s+([0-9:.]+)/igm) {
+		($localIp,$localPort) = split /:/,$2;
+		($remoteIp,$remotePort) = split /:/,$3;
 		next if ($localIp eq $remoteIp);
-		$vector = ($localPort >= 1024) ? "==>" : "<==";
-		print "$localIp\[$localPort\] $vector $remoteIp\[$remotePort\]\n"
+		if ($localPort >= 1024) {
+			# connection is outgoing
+			if ($outgoing->{$remoteIp}) {
+				# remote IP already in table
+				if ($outgoing->{$remoteIp}->{$remotePort}) {
+					$outgoing->{$remoteIp}->{$remotePort}++;
+					}
+				else {
+					$outgoing->{$remoteIp}->{$remotePort} = 1;
+					}
+				}
+			else {
+				# add remote IP to table
+				$outgoing->{$remoteIp} = {};
+				$outgoing->{$remoteIp}->{$remotePort} = 1;
+				}
+			}
+		else {
+			# connection is incoming
+			if ($incoming->{$remoteIp}) {
+				# remote IP already in table
+				if ($incoming->{$remoteIp}->{$localPort}) {
+					$incoming->{$remoteIp}->{$localPort}++;
+					}
+				else {
+					$incoming->{$remoteIp}->{$localPort} = 1;
+					}
+				}
+			else {
+				# add remote IP to table
+				$incoming->{$remoteIp} = {};
+				$incoming->{$remoteIp}->{$localPort} = 1;
+				}
+			}
 		}
+	print main::Dumper($incoming);
+	print main::Dumper($outgoing);
 	}
 
 ##
