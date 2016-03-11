@@ -23,7 +23,7 @@
 # testing only #
 # use Data::Dumper;$Data::Dumper::Indent=1;$Data::Dumper::Quotekeys=1;$Data::Dumper::Useqq=1;
 
-use strict;
+#use strict;
 
 # command line options:
 our $options = {
