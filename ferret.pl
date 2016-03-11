@@ -346,7 +346,7 @@ sub show {
 			$counts = "";
 			foreach (sort keys(%{$incoming->{$ip}})) {
 				if ($incoming->{$ip}->{$_} > 1) {
-					$counts .= "$_(x$incoming->{$ip}->{$_}) ";
+					$counts .= "$_($incoming->{$ip}->{$_}) ";
 					}
 				else {
 					$counts .= "$_ ";
@@ -363,7 +363,7 @@ sub show {
 			$counts = "";
 			foreach (sort keys(%{$outgoing->{$ip}})) {
 				if ($outgoing->{$ip}->{$_} > 1) {
-					$counts .= "$_(x$outgoing->{$ip}->{$_}) ";
+					$counts .= "$_($outgoing->{$ip}->{$_}) ";
 					}
 				else {
 					$counts .= "$_ ";
