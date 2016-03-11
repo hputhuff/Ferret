@@ -298,9 +298,10 @@ sub show {
 	my ($localIp,$localPort,$remoteIp,$remotePort,$incoming,$outgoing,$services);
 	my ($connections,$ip,$counts,$port,$count);
 	$incoming = {}; $outgoing={};
-	while ((`\\netstat -n | grep tcp`) =~ /^tcp(\d+)*\s+\d+\s+\d+\s+([0-9:.]+)\s+([0-9:.]+)/igm) {
-		($localIp,$localPort) = split /:/,$2;
-		($remoteIp,$remotePort) = split /:/,$3;
+	while ((`\\netstat -n | grep tcp`) =~
+		/^tcp.+?(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}:\d+).+?(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}:\d+)/igm) {
+		($localIp,$localPort) = split /:/,$1;
+		($remoteIp,$remotePort) = split /:/,$2;
 		next if ($localIp eq $remoteIp);
 		if ($localPort >= 1024) {
 			# connection is outgoing
