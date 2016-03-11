@@ -9,7 +9,11 @@
 #	ferret.pl: dig out system information
 #	run with: perl <(curl -ks https://raw.githubusercontent.com/hputhuff/Ferret/master/ferret.pl)
 #	options:
-#		-n or --netstat = show network connections
+#		-a or -all = show all sections
+#		-c or --connections = show network connections
+#		-l or --listeners = show listening daemons
+#		-n or --network = show network information
+#		-s or --system = show system specifics
 #		-t or --times = show start/stop times
 #		-w or --websites = show hosted website details
 #	March 2016 by Harley H. Puthuff
@@ -23,7 +27,11 @@ use strict;
 
 # command line options:
 our $options = {
-	netstat => 0,			# show network connections
+	all => 0,				# show all sections
+	server => 0,			# show system specifics
+	network => 0,			# show network specifics
+	listeners => 0,			# show listening daemons
+	connections => 0,		# show network connections
 	times => 0,				# show start/stop times
 	websites => 0,			# show hosted websites
 	};
@@ -50,28 +58,45 @@ our $log = new Console;
 # mainline process
 
 parseOptions();
-$log->header if $options->{times};
-System->show;
-Network->show;
-Listening->show;
-Netstat->show if $options->{netstat};
-Websites->show if $options->{websites};
-$log->footer if $options->{times};
+$log->header		if $options->{times};
+System->show		if ($options->{all} || $options->{server});
+Network->show		if ($options->{all} || $options->{network});
+Listeners->show		if ($options->{all} || $options->{listeners});
+Connections->show	if ($options->{all} || $options->{connections});
+Websites->show		if ($options->{all} || $options->{websites});
+$log->footer		if $options->{times};
 exit;
 
 # parse the command line and set options
 sub parseOptions {
 	foreach (@ARGV) {
 		if (/^--/) {
-			$options->{times} = 1 if (/times/);
-			$options->{netstat} = 1 if (/netstat/);
-			$options->{websites} = 1 if (/websites/);
+			$options->{all} = 1				if /all/;
+			$options->{times} = 1			if /times/;
+			$options->{connections} = 1		if /connections/;
+			$options->{server} = 1			if /server/;
+			$options->{network} = 1			if /network/;
+			$options->{listeners} = 1		if /listeners/;
+			$options->{websites} = 1		if /websites/;
 			next;
 			}
-		$options->{times} = 1 if (/t/);
-		$options->{netstat} = 1 if (/n/);
-		$options->{websites} = 1 if (/w/);
+		$options->{all} = 1					if /a/;
+		$options->{times} = 1				if /t/;
+		$options->{server} = 1				if /s/;
+		$options->{network} = 1				if /n/;
+		$options->{listeners} = 1			if /l/;
+		$options->{connections} = 1			if /c/;
+		$options->{websites} = 1			if /w/;
 		}
+	$options->{server} = $options->{network} = 1
+		unless (
+			$options->{all} ||
+			$options->{server} ||
+			$options->{network} ||
+			$options->{listeners} ||
+			$options->{connections} ||
+			$options->{websites}
+			);
 	}
 
 ##
@@ -229,7 +254,7 @@ sub privateIP {
 ##
 # Dig for listeners
 #
-package Listening;
+package Listeners;
 
 # display information about who's listening
 sub show {
@@ -264,7 +289,7 @@ sub show {
 ##
 # Dig for network connections
 #
-package Netstat;
+package Connections;
 
 # Show connections
 
