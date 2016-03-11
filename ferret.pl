@@ -17,7 +17,7 @@
 #
 
 # testing only #
-use Data::Dumper;$Data::Dumper::Indent=1;$Data::Dumper::Quotekeys=1;$Data::Dumper::Useqq=1;
+# use Data::Dumper;$Data::Dumper::Indent=1;$Data::Dumper::Quotekeys=1;$Data::Dumper::Useqq=1;
 
 use strict;
 
@@ -56,7 +56,6 @@ Network->show;
 Listening->show;
 Netstat->show if $options->{netstat};
 Websites->show if $options->{websites};
-print Dumper($conf);
 $log->footer if $options->{times};
 exit;
 
@@ -272,6 +271,7 @@ package Netstat;
 sub show {
 	my $class = shift;
 	my ($localIp,$localPort,$remoteIp,$remotePort,$incoming,$outgoing,$services);
+	my ($connections,$ip,$counts,$port,$count);
 	$incoming = {}; $outgoing={};
 	while ((`\\netstat -n | grep tcp`) =~ /^tcp(\d+)*\s+\d+\s+\d+\s+([0-9:.]+)\s+([0-9:.]+)/igm) {
 		($localIp,$localPort) = split /:/,$2;
@@ -312,8 +312,40 @@ sub show {
 				}
 			}
 		}
-	print main::Dumper($incoming);
-	print main::Dumper($outgoing);
+	@{$connections} = sort keys(%{$incoming});
+	if (scalar @{$connections}) {
+		$log->exhibit("Incoming connections:");
+		foreach (@{$connections}) {
+			$ip = $_;
+			$counts = "";
+			foreach (sort keys($incoming->{$ip})) {
+				if ($incoming->{$ip}->{$_} > 1) {
+					$counts .= "$_(x$incoming->{$ip}->{$_}) ";
+					}
+				else {
+					$counts .= "$_ ";
+					}
+				}
+			$log->exhibit($ip,$counts);
+			}
+		}
+	@{$connections} = sort keys(%{$outgoing});
+	if (scalar @{$connections}) {
+		$log->exhibit("Outgoing connections:");
+		foreach (@{$connections}) {
+			$ip = $_;
+			$counts = "";
+			foreach (sort keys($outgoing->{$ip})) {
+				if ($outgoing->{$ip}->{$_} > 1) {
+					$counts .= "$_(x$outgoing->{$ip}->{$_}) ";
+					}
+				else {
+					$counts .= "$_ ";
+					}
+				}
+			$log->exhibit($ip,$counts);
+			}
+		}
 	}
 
 ##
