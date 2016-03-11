@@ -344,7 +344,7 @@ sub show {
 		foreach (@{$connections}) {
 			$ip = $_;
 			$counts = "";
-			foreach (sort keys($incoming->{$ip})) {
+			foreach (sort keys(%{$incoming->{$ip}})) {
 				if ($incoming->{$ip}->{$_} > 1) {
 					$counts .= "$_(x$incoming->{$ip}->{$_}) ";
 					}
@@ -361,7 +361,7 @@ sub show {
 		foreach (@{$connections}) {
 			$ip = $_;
 			$counts = "";
-			foreach (sort keys($outgoing->{$ip})) {
+			foreach (sort keys(%{$outgoing->{$ip}})) {
 				if ($outgoing->{$ip}->{$_} > 1) {
 					$counts .= "$_(x$outgoing->{$ip}->{$_}) ";
 					}
