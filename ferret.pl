@@ -23,7 +23,7 @@
 # testing only #
 # use Data::Dumper;$Data::Dumper::Indent=1;$Data::Dumper::Quotekeys=1;$Data::Dumper::Useqq=1;
 
-#use strict;
+# global variables
 
 # command line options:
 our $options = {
@@ -54,6 +54,9 @@ our $conf = {
 
 # object for handling output
 our $log = new Console;
+
+# local services hash (as needed)
+our $services = undef;
 
 # mainline process
 
@@ -97,6 +100,13 @@ sub parseOptions {
 			$options->{connections} ||
 			$options->{websites}
 			);
+	}
+
+# load the local services table from /etc/services
+sub getLocalServices {
+	return if (ref $services eq ref {});
+	$services = {};
+	$services->{"$2"} = $1 while ((`cat /etc/services`) =~	/^(\S+)\s+(\d+)\/tcp/igm);
 	}
 
 ##
@@ -295,8 +305,8 @@ package Connections;
 
 sub show {
 	my $class = shift;
-	my ($localIp,$localPort,$remoteIp,$remotePort,$incoming,$outgoing,$services);
-	my ($connections,$ip,$counts,$port,$count);
+	my ($localIp,$localPort,$remoteIp,$remotePort,$incoming,$outgoing);
+	my ($connections,$ip,$counts,$port,$service);
 	$incoming = {}; $outgoing={};
 	while ((`\\netstat -n | grep tcp`) =~
 		/^tcp.+?(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}:\d+).+?(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}:\d+)/igm) {
@@ -338,18 +348,19 @@ sub show {
 				}
 			}
 		}
+	main::getLocalServices();
 	@{$connections} = sort keys(%{$incoming});
 	if (scalar @{$connections}) {
 		$log->exhibit("Incoming connections:");
 		foreach (@{$connections}) {
-			$ip = $_;
-			$counts = "";
+			$ip = $_; $counts = "";
 			foreach (sort keys(%{$incoming->{$ip}})) {
-				if ($incoming->{$ip}->{$_} > 1) {
-					$counts .= "$_($incoming->{$ip}->{$_}) ";
+				$port = $_; $service = $main::services->{$port};
+				if ($incoming->{$ip}->{$port} > 1) {
+					$counts .= "$service($incoming->{$ip}->{$port}) ";
 					}
 				else {
-					$counts .= "$_ ";
+					$counts .= "$service ";
 					}
 				}
 			$log->exhibit($ip,$counts);
@@ -362,11 +373,12 @@ sub show {
 			$ip = $_;
 			$counts = "";
 			foreach (sort keys(%{$outgoing->{$ip}})) {
-				if ($outgoing->{$ip}->{$_} > 1) {
-					$counts .= "$_($outgoing->{$ip}->{$_}) ";
+				$port = $_; $service = $main::services->{$port};
+				if ($outgoing->{$ip}->{$port} > 1) {
+					$counts .= "$service($outgoing->{$ip}->{$port}) ";
 					}
 				else {
-					$counts .= "$_ ";
+					$counts .= "$service ";
 					}
 				}
 			$log->exhibit($ip,$counts);
