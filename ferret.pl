@@ -351,7 +351,7 @@ sub show {
 	main::getLocalServices();
 	@{$connections} = sort keys(%{$incoming});
 	if (scalar @{$connections}) {
-		$log->exhibit("Incoming connections:");
+		$log->exhibit("Inbound connections:");
 		foreach (@{$connections}) {
 			$ip = $_; $counts = "";
 			foreach (sort keys(%{$incoming->{$ip}})) {
@@ -368,7 +368,7 @@ sub show {
 		}
 	@{$connections} = sort keys(%{$outgoing});
 	if (scalar @{$connections}) {
-		$log->exhibit("Outgoing connections:");
+		$log->exhibit("Outbound connections:");
 		foreach (@{$connections}) {
 			$ip = $_;
 			$counts = "";
