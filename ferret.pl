@@ -60,7 +60,8 @@ our $services = undef;
 
 # mainline process
 
-parseOptions();
+parseOptions();		# load options flags
+getLocalServices();	# load local services table
 $log->header		if $options->{times};
 System->show		if ($options->{all} || $options->{server});
 Network->show		if ($options->{all} || $options->{network});
@@ -273,17 +274,17 @@ package Listeners;
 # display information about who's listening
 sub show {
 	my $class = shift;
-	my ($netstat,$ps,$listeners,$port,$process,$name,$daemon,$user);
+	my ($netstat,$ps,$listeners,$port,$service,$process,$name,$daemon,$user);
 	$log->exhibit("Who's listening:");
 	$netstat = `\\netstat -pntl`;
 	$ps = `\\ps aux`;
 	%{$listeners} = $netstat =~ /tcp.+?\:+(\d{2,}).+?listen.+?(\d+\/\w+)/gi;
 	foreach (sort {$a<=>$b} keys %{$listeners}) {
-		$port = $_;
+		$port = $_;	$service = $services->{$port};
 		($process,$name) = split /\//,$listeners->{$_};
 		$ps =~ /^(\w+)\s+$process(\s+\S+){8}\s+(\S+)/m;
 		$daemon = $3; $user = $1;
-		$log->exhibit("port $port","$daemon as $user");
+		$log->exhibit("port $service($port)","$daemon as $user");
 		# try to glean info about the system from listeners #
 		if ($port =~ /(80|443|7080)/) {
 			$conf->{apache2} = 1 if ($daemon =~ /apache2/i);
@@ -352,7 +353,6 @@ sub show {
 				}
 			}
 		}
-	main::getLocalServices();
 	@{$connections} = sort keys(%{$incoming});
 	if (scalar @{$connections}) {
 		$log->exhibit("Inbound connections:");
