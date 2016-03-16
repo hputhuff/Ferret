@@ -106,7 +106,11 @@ sub parseOptions {
 sub getLocalServices {
 	return if (ref $services eq ref {});
 	$services = {};
-	$services->{"$2"} = $1 while ((`cat /etc/services`) =~	/^(\S+)\s+(\d+)\/tcp/igm);
+	open SERVICES,"/etc/services";
+	while (<SERVICES>) {
+		$services->{"$2"} = $1 if (/^(\S+)\s+(\d+)\/tcp/i);
+		}
+	close SERVICES;
 	}
 
 ##
