@@ -284,7 +284,7 @@ sub show {
 		($process,$name) = split /\//,$listeners->{$_};
 		$ps =~ /^(\w+)\s+$process(\s+\S+){8}\s+(\S+)/m;
 		$daemon = $3; $user = $1;
-		$log->exhibit("port $service($port)","$daemon as $user");
+		$log->exhibit("port $service/$port","$daemon as $user");
 		# try to glean info about the system from listeners #
 		if ($port =~ /(80|443|7080)/) {
 			$conf->{apache2} = 1 if ($daemon =~ /apache2/i);
