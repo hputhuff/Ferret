@@ -114,6 +114,13 @@ sub getLocalServices {
 	close SERVICES;
 	}
 
+# get a service name or return port
+sub getServiceName {
+	my $port = shift;
+	my $name = $services->{$port};
+	return $name ? $name : $port;
+	}
+
 ##
 # Dig for system information (hostname, CPU, etc.)
 #
@@ -280,7 +287,7 @@ sub show {
 	$ps = `\\ps aux`;
 	%{$listeners} = $netstat =~ /tcp.+?\:+(\d{2,}).+?listen.+?(\d+\/\w+)/gi;
 	foreach (sort {$a<=>$b} keys %{$listeners}) {
-		$port = $_;	$service = $services->{$port};
+		$port = $_;	$service = main::getServiceName($port);
 		($process,$name) = split /\//,$listeners->{$_};
 		$ps =~ /^(\w+)\s+$process(\s+\S+){8}\s+(\S+)/m;
 		$daemon = $3; $user = $1;
@@ -359,7 +366,7 @@ sub show {
 		foreach (@{$connections}) {
 			$ip = $_; $counts = "";
 			foreach (sort keys(%{$incoming->{$ip}})) {
-				$port = $_; $service = $main::services->{$port};
+				$port = $_; $service = main::getServiceName($port);
 				if ($incoming->{$ip}->{$port} > 1) {
 					$counts .= "$service($incoming->{$ip}->{$port}) ";
 					}
@@ -377,7 +384,7 @@ sub show {
 			$ip = $_;
 			$counts = "";
 			foreach (sort keys(%{$outgoing->{$ip}})) {
-				$port = $_; $service = $main::services->{$port};
+				$port = $_; $service = main::getServiceName($port);
 				if ($outgoing->{$ip}->{$port} > 1) {
 					$counts .= "$service($outgoing->{$ip}->{$port}) ";
 					}
