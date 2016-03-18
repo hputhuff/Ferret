@@ -18,7 +18,7 @@
 #		-w or --websites = show hosted website details
 #	March 2016 by Harley H. Puthuff
 #	with a lot of ideas from Samir Jafferali's shell script: rsi.sh
-#
+##
 
 # testing only #
 # use Data::Dumper;$Data::Dumper::Indent=1;$Data::Dumper::Quotekeys=1;$Data::Dumper::Useqq=1;
@@ -122,8 +122,8 @@ sub getServiceName {
 	}
 
 ##
-# Dig for system information (hostname, CPU, etc.)
-#
+#	Dig for system information (hostname, CPU, etc.)
+##
 package System;
 
 use constant MEGABYTE => 1048576.0;	# one megabyte
@@ -233,8 +233,8 @@ sub dashboard {
 	}
 
 ##
-# Dig for network information (IPs, listeners,etc.)
-#
+#	Dig for network information (IPs, listeners,etc.)
+##
 package Network;
 
 # display information about the network
@@ -274,8 +274,8 @@ sub privateIP {
 	}
 
 ##
-# Dig for listeners
-#
+#	Dig for listening daemons
+##
 package Listeners;
 
 # display information about who's listening
@@ -310,8 +310,8 @@ sub show {
 	}
 
 ##
-# Dig for network connections
-#
+#	Dig for network connections
+##
 package Connections;
 
 # Show connections
@@ -399,8 +399,8 @@ sub show {
 	}
 
 ##
-# Dig for hosted websites
-#
+#	Dig for hosted websites
+##
 package Websites;
 
 # Show hosted websites
@@ -409,8 +409,8 @@ sub show {
 	}
 
 ##
-# Console.pm - Console (STDOUT) handler
-#
+#	Console.pm - Console (STDOUT) handler
+##
 package Console;
 use constant DEFAULT_PREFIX		=> ':';		# default line prefix
 use constant LABEL_SIZE			=> 20;		# max length of value label
