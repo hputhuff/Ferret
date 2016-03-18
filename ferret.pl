@@ -318,7 +318,7 @@ sub show {
 		($localIp,$localPort) = split /:/,$1;
 		($remoteIp,$remotePort) = split /:/,$2;
 		next if ($localIp eq $remoteIp);
-		if ($localPort >= 1024) {
+		if ($localPort >= 10240) {
 			# connection is outgoing
 			if ($outgoing->{$remoteIp}) {
 				# remote IP already in table
