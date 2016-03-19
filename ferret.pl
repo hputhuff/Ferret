@@ -17,7 +17,7 @@
 #		-t or --times = show start/stop times
 #		-w or --websites = show hosted website details
 #	March 2016 by Harley H. Puthuff
-#	with a lot of ideas from Samir Jafferali's shell script: rsi.sh
+#	with a lot of ideas from Samir Jafferali's shell script rsi.sh
 ##
 
 # testing only #
@@ -26,6 +26,7 @@
 # global variables
 
 # command line options:
+
 our $options = {
 	all => 0,				# show all sections
 	server => 0,			# show system specifics
@@ -37,6 +38,7 @@ our $options = {
 	};
 	
 # evaluated configuration settings:
+
 our $conf = {
 	hostname => undef,		# hostname for server
 	redhat => 0,			# Redhat or CentOs
@@ -53,9 +55,11 @@ our $conf = {
 	};
 
 # object for handling output
+
 our $log = new Console;
 
 # local services hash (as needed)
+
 our $services = undef;
 
 # mainline process
@@ -72,6 +76,7 @@ $log->footer		if $options->{times};
 exit;
 
 # parse the command line and set options
+
 sub parseOptions {
 	foreach (@ARGV) {
 		if (/^--/) {
@@ -104,6 +109,7 @@ sub parseOptions {
 	}
 
 # load the local services table from /etc/services
+
 sub getLocalServices {
 	return if (ref $services eq ref {});
 	$services = {};
@@ -115,6 +121,7 @@ sub getLocalServices {
 	}
 
 # get a service name or return port
+
 sub getServiceName {
 	my $port = shift;
 	my $name = $services->{$port};
@@ -129,6 +136,7 @@ package System;
 use constant MEGABYTE => 1048576.0;	# one megabyte
 
 # display information about the system/server
+
 sub show {
 	my $class = shift;
 	$log->exhibit("System:");
@@ -141,6 +149,7 @@ sub show {
 	}
 
 # display the hostname in use by the system
+
 sub hostname {
 	my $class = shift;
 	$conf->{hostname} = `uname -n`; chomp $conf->{hostname};
@@ -148,6 +157,7 @@ sub hostname {
 	}
 
 # display the processor & features
+
 sub processor {
 	my $class = shift;
 	my $data = `cat /proc/cpuinfo`;
@@ -158,6 +168,7 @@ sub processor {
 	}
 
 # display the RAM size
+
 sub memory {
 	my $class = shift;
 	my ($total,$free);
@@ -170,6 +181,7 @@ sub memory {
 	}
 
 # display the disk storage
+
 sub storage {
 	my $class = shift;
 	my ($size,$used,$free,$avail);
@@ -180,6 +192,7 @@ sub storage {
 	}
 
 # display the operating system
+
 sub executive {
 	my $class = shift;
 	my $os;
@@ -196,6 +209,7 @@ sub executive {
 	}
 	
 # display info about dashboard/control panel ()if any)
+
 sub dashboard {
 	my $class = shift;
 	my ($test,$cp,$password,$url);
@@ -238,6 +252,7 @@ sub dashboard {
 package Network;
 
 # display information about the network
+
 sub show {
 	my $class = shift;
 	$log->exhibit("Network:");
@@ -248,18 +263,21 @@ sub show {
 	}
 
 # display the external IP address (IPv4)
+
 sub externalIPv4 {
 	my $class = shift;
 	$log->exhibit("External IP (IPv4)",`curl -s -4 curlmyip.de`);
 	}
 
 # display the external IP address (IPv6)
+
 sub externalIPv6 {
 	my $class = shift;
 	$log->exhibit("External IP (IPv6)",`curl -s -6 icanhazip.com`);
 	}
 
 # display the network (eth0) IP address
+
 sub networkIP {
 	my $class = shift;
 	`ip addr` =~ /eth0.+?inet\s+(\d+\.\d+\.\d+\.\d+)/is;
@@ -267,6 +285,7 @@ sub networkIP {
 	}
 
 # display the private (eth1) IP address
+
 sub privateIP {
 	my $class = shift;
 	`ip addr` =~ /eth1.+?inet\s+(\d+\.\d+\.\d+\.\d+)/is;
@@ -279,6 +298,7 @@ sub privateIP {
 package Listeners;
 
 # display information about who's listening
+
 sub show {
 	my $class = shift;
 	my ($netstat,$ps,$listeners,$port,$service,$process,$name,$daemon,$user);
