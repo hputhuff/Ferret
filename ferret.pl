@@ -308,11 +308,11 @@ sub show {
 	%{$listeners} = $netstat =~ /tcp.+?\:+(\d{2,}).+?listen.+?(\d+\/\w+)/gi;
 	foreach (sort {$a<=>$b} keys %{$listeners}) {
 		$port = $_;	$service = main::getServiceName($port);
-		$service .= "/$port" unless ($port eq $service);
+		$service = "" if ($port eq $service);
 		($process,$name) = split /\//,$listeners->{$_};
 		$ps =~ /^(\w+)\s+$process(\s+\S+){8}\s+(\S+)/m;
 		$daemon = $3; $user = $1;
-		$log->exhibit("port $service","$daemon as $user");
+		$log->exhibit("$port $service","$daemon as $user");
 		# try to glean info about the system from listeners #
 		if ($port =~ /(80|443|7080)/) {
 			$conf->{apache2} = 1 if ($daemon =~ /apache2/i);
