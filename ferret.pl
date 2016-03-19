@@ -302,7 +302,7 @@ package Listeners;
 sub show {
 	my $class = shift;
 	my ($netstat,$ps,$listeners,$port,$service,$process,$name,$daemon,$user);
-	$log->exhibit("Who's listening:");
+	$log->exhibit("Who's listening (ports):");
 	$netstat = `\\netstat -pntl`;
 	$ps = `\\ps aux`;
 	%{$listeners} = $netstat =~ /tcp.+?\:+(\d{2,}).+?listen.+?(\d+\/\w+)/gi;
