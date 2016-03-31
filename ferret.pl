@@ -11,12 +11,13 @@
 #	options:
 #		-a or -all = show all sections
 #		-c or --connections = show network connections
+#		-h or --help = show this information
 #		-l or --listeners = show listening daemons
 #		-n or --network = show network information
 #		-s or --system = show system specifics
 #		-t or --times = show start/stop times
 #		-w or --websites = show hosted website details
-#	March 2016 by Harley H. Puthuff
+#	April 2016 by Harley H. Puthuff
 #	with a lot of ideas from Samir Jafferali's shell script rsi.sh
 ##
 
@@ -24,6 +25,27 @@
 # use Data::Dumper;$Data::Dumper::Indent=1;$Data::Dumper::Quotekeys=1;$Data::Dumper::Useqq=1;
 
 # global variables
+
+# help information
+
+our @helpInformation = (
+	" ",
+	"Ferret - Show System Information",
+	" ",
+	"Command:",
+	"    perl <(curl -ks https://raw.githubusercontent.com/hputhuff/Ferret/master/ferret.pl) [options]",
+	"Options:",
+	"    -a or -all = show all sections",
+	"    -c or --connections = show network connections",
+	"    -h or --help = show this information",
+	"    -l or --listeners = show listening daemons",
+	"    -n or --network = show network information",
+	"    -s or --system = show system specifics",
+	"    -t or --times = show start/stop times",
+	"    -w or --websites = show hosted website details",
+	"April 2016 by Harley H. Puthuff",
+	" "
+	);
 
 # command line options:
 
@@ -35,6 +57,7 @@ our $options = {
 	connections => 0,		# show network connections
 	times => 0,				# show start/stop times
 	websites => 0,			# show hosted websites
+	help => 0,				# show help information
 	};
 	
 # evaluated configuration settings:
@@ -65,14 +88,19 @@ our $services = undef;
 # mainline process
 
 parseOptions();		# load options flags
-getLocalServices();	# load local services table
-$log->header		if $options->{times};
-System->show		if ($options->{all} || $options->{server});
-Network->show		if ($options->{all} || $options->{network});
-Listeners->show		if ($options->{all} || $options->{listeners});
-Connections->show	if ($options->{all} || $options->{connections});
-Websites->show		if ($options->{all} || $options->{websites});
-$log->footer		if $options->{times};
+$log->header if $options->{times};
+if ($options->{help}) {
+	showHelpInformation();
+	}
+else {
+	getLocalServices();	# load local services table
+	System->show		if ($options->{all} || $options->{server});
+	Network->show		if ($options->{all} || $options->{network});
+	Listeners->show		if ($options->{all} || $options->{listeners});
+	Connections->show	if ($options->{all} || $options->{connections});
+	Websites->show		if ($options->{all} || $options->{websites});
+	}
+$log->footer if $options->{times};
 exit;
 
 # parse the command line and set options
@@ -87,6 +115,7 @@ sub parseOptions {
 			$options->{network} = 1			if /network/;
 			$options->{listeners} = 1		if /listeners/;
 			$options->{websites} = 1		if /websites/;
+			$options->{help} = 1			if /help/;
 			next;
 			}
 		$options->{all} = 1					if /a/;
@@ -96,9 +125,11 @@ sub parseOptions {
 		$options->{listeners} = 1			if /l/;
 		$options->{connections} = 1			if /c/;
 		$options->{websites} = 1			if /w/;
+		$options->{help} = 1				if /h/;
 		}
 	$options->{server} = $options->{network} = 1
 		unless (
+			$options->{help} ||
 			$options->{all} ||
 			$options->{server} ||
 			$options->{network} ||
@@ -126,6 +157,12 @@ sub getServiceName {
 	my $port = shift;
 	my $name = $services->{$port};
 	return $name ? $name : $port;
+	}
+
+# show the help information
+
+sub showHelpInformation {
+	$log->write(@helpInformation);
 	}
 
 ##
