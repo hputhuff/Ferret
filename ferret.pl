@@ -17,7 +17,7 @@
 #		-s or --system = show system specifics
 #		-t or --times = show start/stop times
 #		-w or --websites = show hosted website details
-#	April 2016 by Harley H. Puthuff
+#	May 2016 by Harley H. Puthuff
 #	with a lot of ideas from Samir Jafferali's shell script rsi.sh
 ##
 
@@ -43,7 +43,7 @@ our @helpInformation = (
 	"    -s or --system = show system specifics",
 	"    -t or --times = show start/stop times",
 	"    -w or --websites = show hosted website details",
-	"April 2016 by Harley H. Puthuff",
+	"May 2016 by Harley H. Puthuff",
 	" "
 	);
 
@@ -269,9 +269,7 @@ sub dashboard {
 		}
 	$log->exhibit("Control Panel",$cp);
 	if ($conf->{plesk}) {
-		$cp =~ /psa[ -]+(\d+\.\d+)/i;
-		$test = $1; $test =~ tr/[0-9]//cd;
-		if ($test le '1019') {
+		if (-e '/etc/psa/.psa.shadow') {
 			$password = `cat /etc/psa/.psa.shadow`;
 			}
 		else {
