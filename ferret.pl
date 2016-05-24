@@ -270,7 +270,8 @@ sub dashboard {
 	$log->exhibit("Control Panel",$cp);
 	if ($conf->{plesk}) {
 		$cp =~ /^psa.+?(\d+\.\d+\.\d+)/i;
-		if (($1 =~ tr/[0-9]//cd) <= 1019) {
+		$build = $1; $build =~ tr/[0-9]//cd;
+		if ($build <= 1019) {
 			$password = `cat /etc/psa/.psa.shadow`;
 			}
 		else {
