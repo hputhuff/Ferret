@@ -63,6 +63,7 @@ our $options = {
 # evaluated configuration settings:
 
 our $conf = {
+	externalIP => undef,	# external IP address
 	hostname => undef,		# hostname for server
 	redhat => 0,			# Redhat or CentOs
 	ubuntu => 0,			# Ubuntu, Mint, Debian
@@ -137,6 +138,7 @@ sub parseOptions {
 			$options->{connections} ||
 			$options->{websites}
 			);
+	$conf->{externalIP} = `curl -s -4 curlmyip.de`; # save our address
 	}
 
 # load the local services table from /etc/services
@@ -278,7 +280,7 @@ sub dashboard {
 			$password = `/usr/local/psa/bin/admin --show-password`;
 			}
 		$log->exhibit(" Plesk login","admin => $password");
-		$url = "http://".`curl -sk curlmyip.de`.":8880/login_up.php3?login_name=admin&passwd=$password";
+		$url = "http://".$conf->{externalIP}.":8880/login_up.php3?login_name=admin&passwd=$password";
 		$log->exhibit(" Plesk url",$url);
 		}
 	}
@@ -303,7 +305,7 @@ sub show {
 
 sub externalIPv4 {
 	my $class = shift;
-	$log->exhibit("External IP (IPv4)",`curl -s -4 curlmyip.de`);
+	$log->exhibit("External IP (IPv4)",$conf->{externalIP});
 	}
 
 # display the external IP address (IPv6)
