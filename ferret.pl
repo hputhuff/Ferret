@@ -249,7 +249,7 @@ sub executive {
 
 sub dashboard {
 	my $class = shift;
-	my ($test,$cp,$password,$url);
+	my ($test,$cp,$build,$password,$url);
 	# check for plesk
 	$test = $conf->{redhat} ?  `rpm -q psa 2>/dev/null` : `dpkg -l psa 2>/dev/null`;
 	if ($test =~ /build/i) {
@@ -269,7 +269,8 @@ sub dashboard {
 		}
 	$log->exhibit("Control Panel",$cp);
 	if ($conf->{plesk}) {
-		if (-e '/etc/psa/.psa.shadow') {
+		$cp =~ /^psa.+?(\d+\.\d+\.\d+)/i;
+		if (($1 =~ tr/[0-9]//cd) <= 1019) {
 			$password = `cat /etc/psa/.psa.shadow`;
 			}
 		else {
