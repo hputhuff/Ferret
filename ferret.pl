@@ -469,7 +469,8 @@ sub show {
 #	Console.pm - Console (STDOUT) handler
 ##
 package Console;
-use constant DEFAULT_PREFIX		=> ':';		# default line prefix
+
+use constant DEFAULT_PREFIX		=> '>';		# default line prefix
 use constant LABEL_SIZE			=> 20;		# max length of value label
 
 ##
@@ -487,7 +488,7 @@ sub new {
 	$this->{prefix} .= " ";		# append a space
 	$0 =~ /(.*\/)*([^.]+)(\..*)*/;	# extract
 	$this->{script} = $2;	#  our name
-	$this->{script} = "ferret" if ($this->{script} =~ /[0-9]+/);
+	$this->{script} = "unknown" if ($this->{script} =~ /[0-9]+/);
 	$this->{bold} = `tput bold`; chomp($this->{bold});
 	$this->{normal} = `tput sgr0`; chomp($this->{normal});
 	return $this;
@@ -513,13 +514,16 @@ sub write {
 #
 sub read {
 	my ($this,$prompt,$default) = @_;
-	print STDOUT $this->{prefix};
-	print STDOUT $prompt if $prompt;
-	print STDOUT " [$default]" if $default;
-	print STDOUT ": " if $prompt;
-	my $buffer = readline(STDIN);
-	chomp $buffer;
-	$buffer = $default if ($default and !$buffer);
+	my ($pretext,$buffer);
+	$pretext = $this->{prefix};
+	if ($prompt) {
+		$pretext .= $prompt;
+		$pretext .= " [$default]" if ($default);
+		$pretext .= ": ";
+		}
+	print STDOUT $pretext;
+	$buffer = readline(STDIN); chomp $buffer;
+	$buffer ||= $default;
 	return $buffer;
 	}
 
@@ -531,10 +535,8 @@ sub read {
 #
 sub confirm {
 	my ($this,$prompt) = @_;
-	print STDOUT $this->{prefix},$prompt," [N,y]? ";
-	my $buffer = readline(STDIN);
-	chomp $buffer;
-	return (!$buffer or $buffer=~/n/i) ? 0 : 1;
+	my $result = $this->read($prompt." [N,y]");
+	return (!$result or $result=~/n/i) ? 0 : 1;
 	}
 
 ##
