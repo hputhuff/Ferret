@@ -17,7 +17,7 @@
 #		-s or --system = show system specifics
 #		-t or --times = show start/stop times
 #		-w or --websites = show hosted website details
-#	April 2016 by Harley H. Puthuff
+#	May 2016 by Harley H. Puthuff
 #	with a lot of ideas from Samir Jafferali's shell script rsi.sh
 ##
 
@@ -43,7 +43,7 @@ our @helpInformation = (
 	"    -s or --system = show system specifics",
 	"    -t or --times = show start/stop times",
 	"    -w or --websites = show hosted website details",
-	"April 2016 by Harley H. Puthuff",
+	"May 2016 by Harley H. Puthuff",
 	" "
 	);
 
@@ -63,6 +63,7 @@ our $options = {
 # evaluated configuration settings:
 
 our $conf = {
+	externalIP => undef,	# external IP address
 	hostname => undef,		# hostname for server
 	redhat => 0,			# Redhat or CentOs
 	ubuntu => 0,			# Ubuntu, Mint, Debian
@@ -137,6 +138,7 @@ sub parseOptions {
 			$options->{connections} ||
 			$options->{websites}
 			);
+	$conf->{externalIP} = `curl -s -4 curlmyip.de`; # save our address
 	}
 
 # load the local services table from /etc/services
@@ -249,7 +251,7 @@ sub executive {
 
 sub dashboard {
 	my $class = shift;
-	my ($test,$cp,$password,$url);
+	my ($test,$cp,$build,$password,$url);
 	# check for plesk
 	$test = $conf->{redhat} ?  `rpm -q psa 2>/dev/null` : `dpkg -l psa 2>/dev/null`;
 	if ($test =~ /build/i) {
@@ -269,16 +271,16 @@ sub dashboard {
 		}
 	$log->exhibit("Control Panel",$cp);
 	if ($conf->{plesk}) {
-		$cp =~ /psa[ -]+(\d+\.\d+)/i;
-		$test = $1; $test =~ tr/[0-9]//cd;
-		if ($test le '1019') {
+		$cp =~ /^psa.+?(\d+\.\d+\.\d+)/i;
+		$build = $1; $build =~ tr/[0-9]//cd;
+		if ($build <= 1019) {
 			$password = `cat /etc/psa/.psa.shadow`;
 			}
 		else {
 			$password = `/usr/local/psa/bin/admin --show-password`;
 			}
 		$log->exhibit(" Plesk login","admin => $password");
-		$url = "http://".`curl -sk curlmyip.de`.":8880/login_up.php3?login_name=admin&passwd=$password";
+		$url = "http://".$conf->{externalIP}.":8880/login_up.php3?login_name=admin&passwd=$password";
 		$log->exhibit(" Plesk url",$url);
 		}
 	}
@@ -303,7 +305,7 @@ sub show {
 
 sub externalIPv4 {
 	my $class = shift;
-	$log->exhibit("External IP (IPv4)",`curl -s -4 curlmyip.de`);
+	$log->exhibit("External IP (IPv4)",$conf->{externalIP});
 	}
 
 # display the external IP address (IPv6)
