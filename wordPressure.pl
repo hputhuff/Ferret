@@ -147,7 +147,7 @@ sub processConfFiles {
 			}
 		}
 	foreach (sort keys(%confFiles)) {
-		$file = $_; $site = join(',',@{$confFiles{$file}});
+		$file = $_; $site = join(', ',@{$confFiles{$file}});
 		$log->write(" .conf: $file for $site") if $options->{verbose};
 		++$files;
 		}
