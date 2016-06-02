@@ -58,7 +58,7 @@ our $wpSites = 0;			# count of WordPress sites
 our $wpSecured = 0;			# count of WordPress sites secured
 
 our $apachectl = undef;		# string output of apachectl
-our %confFiles = ();		# list of apache .conf files
+our %confFiles = ();		# list of apache .conf files & server names
 our @documentRoots = ();	# list of document root directories
 our @wpDocumentRoots = ();	# list of WordPress Directories
 
@@ -138,9 +138,16 @@ sub processConfFiles {
 	my ($site,$file);
 	$apachectl = `$apacheCommand`;
 	return unless $apachectl;
-	$confFiles{$2} = $1 while ($apachectl =~ /.+\s+(\S+)\s+\((\S+)\:\d+\)/igm);
+	while ($apachectl =~ /.+\s+(\S+)\s+\((\S+)\:\d+\)/igm) {
+		if (ref($confFiles{$2}) eq 'ARRAY') {
+			push @{$confFiles{$2}},$1;
+			}
+		else {
+			$confFiles{$2} = [$1];
+			}
+		}
 	foreach (sort keys(%confFiles)) {
-		$file = $_; $site = $confFiles{$file};
+		$file = $_; $site = join(',',@{$confFiles{$file}});
 		$log->write(" .conf: $file for $site") if $options->{verbose};
 		++$files;
 		}
