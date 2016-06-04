@@ -58,6 +58,11 @@ our $wpSites = 0;			# count of WordPress sites
 our $wpSecured = 0;			# count of WordPress sites secured
 
 our $apachectl = undef;		# string output of apachectl
+our $default = {			# default web server info
+	serverName		=> undef,
+	confFile		=> undef,
+	documentRoot	=> undef
+	};
 our %confFiles = ();		# list of apache .conf files & server names
 our @documentRoots = ();	# list of document root directories
 our @wpDocumentRoots = ();	# list of WordPress Directories
@@ -135,8 +140,20 @@ sub unique {
 # obtain and process the apache .conf files
 
 sub processConfFiles {
+	my ($buffer);
 	$apachectl = `$apacheCommand`;
 	return unless $apachectl;
+	if ($apachectl =~ /.+default server\s+(\S+)\s+\((\S+)\:\d+\)/im) {
+		$default->{serverName} = $1;
+		$default->{confFile} = $2;
+		if ($default->{confFile}) {
+			$buffer = readfile($default->{confFile});
+			if ($buffer =~ /^\s*DocumentRoot\s+(\S+)/im) {
+				$default->{documentRoot} = $1;
+				}
+			}
+		}
+print Dumper($default); return;
 	$confFiles{$2} = $1 while ($apachectl =~ /.+\s+(\S+)\s+\((\S+)\:\d+\)/igm);
 	processOneConfFile($_,$confFiles{$_}) foreach (sort keys(%confFiles));
 	}
@@ -146,7 +163,7 @@ sub processConfFiles {
 sub processOneConfFile {
 	my ($file,$serverName) = @_;
 	my ($contents,$vhost,$documentRoot);
-	$log->write(" .conf: $file") if $options->{verbose};
+	$log->write(".conf: $file") if $options->{verbose};
 return;
 	$contents = readfile($file);
 
