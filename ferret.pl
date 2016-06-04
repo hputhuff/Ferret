@@ -14,10 +14,11 @@
 #		-h or --help = show this information
 #		-l or --listeners = show listening daemons
 #		-n or --network = show network information
+#		-p or --apache = show apache virtual hosts
 #		-s or --system = show system specifics
 #		-t or --times = show start/stop times
 #		-w or --websites = show hosted website details
-#	May 2016 by Harley H. Puthuff
+#	June 2016 by Harley H. Puthuff
 #	with a lot of ideas from Samir Jafferali's shell script rsi.sh
 ##
 
@@ -43,7 +44,7 @@ our @helpInformation = (
 	"    -s or --system = show system specifics",
 	"    -t or --times = show start/stop times",
 	"    -w or --websites = show hosted website details",
-	"May 2016 by Harley H. Puthuff",
+	"June 2016 by Harley H. Puthuff",
 	" "
 	);
 
@@ -159,6 +160,28 @@ sub getServiceName {
 	my $port = shift;
 	my $name = $services->{$port};
 	return $name ? $name : $port;
+	}
+
+# read entire file into a string
+
+sub readfile {
+	my $file = shift;
+	local $/=undef;
+	open FILE,$file or return undef;
+	$buffer = <FILE>;
+	close FILE;
+	return $buffer;
+	}
+
+# produce a sorted array of unique items
+
+sub unique {
+	my @source = @_;
+	my %result = ();
+	foreach my $entry (@source) {
+		$result{$entry} ++;
+		}
+	return sort(keys %result);
 	}
 
 # show the help information
@@ -462,9 +485,58 @@ sub show {
 ##
 package Websites;
 
-# Show hosted websites
+# Show websites served
 
 sub show {
+	my $class = shift;
+	my ($apachectl,$servers,$server,$conf,$buffer,$vhost,$serverName,$documentRoot);
+	return if $conf->{nginx};
+	$apachectl = `apachectl -S 2>&1 | grep -i '\.conf'`;
+	return unless $apachectl;
+	$log->exhibit("Apache Sites Served:");
+	$servers = {};
+	# 1st task: identify default server & content
+	if ($apachectl =~ /.+default server\s+(\S+)\s+\((\S+)\:\d+\)/im) {
+		$server = $1; $conf = $2;
+		$servers->{$server} = {};
+		$servers->{$server}->{confFile} = $conf;
+		if ($servers->{$server}->{confFile}) {
+			$buffer = main::readfile($servers->{$server}->{confFile});
+			if ($buffer =~ /^\s*DocumentRoot\s+(\S+)/im) {
+				$servers->{$server}->{documentRoot} = $1;
+				$servers->{$server}->{documentRoot} =~ tr/"//d; #"
+				}
+			}
+		}
+	# next: find each server & .conf file
+	while ($apachectl =~ /.+\s+(\S+)\s+\((\S+)\:\d+\)/igm) {
+		$server = $1; $conf = $2;
+		next if (exists $servers->{$server});
+		$servers->{$server} = {};
+		$servers->{$server}->{confFile} = $conf;
+		if ($servers->{$server}->{confFile}) {
+			$buffer = main::readfile($servers->{$server}->{confFile});
+			foreach ($buffer =~ /<VirtualHost.+?VirtualHost>/igs) {
+				$vhost = $_;
+				next unless ($vhost =~ /^\s*ServerName\s+(\S+)/im);
+				$serverName = $1; $serverName =~ tr/"//d; #"
+				next unless ($server eq $serverName); # not right vhost
+				if ($vhost =~ /^\s*DocumentRoot\s+(\S+)/im) {
+					$servers->{$server}->{documentRoot} = $1;
+					$servers->{$server}->{documentRoot} =~ tr/"//d; #"
+					}
+				}
+			}
+		}
+	# finally: show the matrix
+	foreach (sort keys(%{$servers})) {
+		$serverName = $_;
+		$conf = $servers->{$serverName}->{confFile};
+		$documentRoot = $servers->{$serverName}->{documentRoot};
+		$log->exhibit("ServerName",$serverName);
+		$log->exhibit("  .conf file"," $conf");
+		$log->exhibit("  DocumentRoot"," $documentRoot");
+		}
 	}
 
 ##
