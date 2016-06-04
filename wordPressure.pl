@@ -135,38 +135,28 @@ sub unique {
 # obtain and process the apache .conf files
 
 sub processConfFiles {
-	my ($site,$file);
 	$apachectl = `$apacheCommand`;
 	return unless $apachectl;
-	while ($apachectl =~ /.+\s+(\S+)\s+\((\S+)\:\d+\)/igm) {
-		if (ref($confFiles{$2}) eq 'ARRAY') {
-			push @{$confFiles{$2}},$1;
-			}
-		else {
-			$confFiles{$2} = [$1];
-			}
-		}
-	foreach (sort keys(%confFiles)) {
-		$file = $_; $site = join(', ',@{$confFiles{$file}});
-		$log->write(" .conf: $file for $site") if $options->{verbose};
-		++$files;
-		}
+	$confFiles{$2} = $1 while ($apachectl =~ /.+\s+(\S+)\s+\((\S+)\:\d+\)/igm);
+	processOneConfFile($_,$confFiles{$_}) foreach (sort keys(%confFiles));
 	}
 
 # process a single .conf file
 
 sub processOneConfFile {
-	my $file = shift;
-	my ($contents,$serverName,$logFile,$lastLogFile);
-	++$files;
-	$log->write("File: $file") unless $options->{quiet};
-	$contents = readfile("$options->{vhosts}/$file");
+	my ($file,$serverName) = @_;
+	my ($contents,$vhost,$documentRoot);
+	$log->write(" .conf: $file") if $options->{verbose};
+return;
+	$contents = readfile($file);
+
 	foreach ($contents =~ /<VirtualHost.+?VirtualHost>/igs) {
 		next unless /ServerName\s+(\S+).+?(Custom|Transfer)Log\s+(\S+)/is;
 		$serverName = $1; $logFile = $3;
 		processVhost($serverName,$logFile) unless ($logFile eq $lastLogFile);
 		$lastLogFile = $logFile;
 		}
+	++$files;
 	}
 	
 # process a single virtual host
