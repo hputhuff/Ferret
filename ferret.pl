@@ -534,8 +534,8 @@ sub show {
 		$conf = $servers->{$serverName}->{confFile};
 		$documentRoot = $servers->{$serverName}->{documentRoot};
 		$log->exhibit("ServerName",$serverName);
-		$log->exhibit("  .conf file"," $conf");
-		$log->exhibit("  DocumentRoot"," $documentRoot");
+		$log->exhibit("  config."," $conf");
+		$log->exhibit("  content"," $documentRoot");
 		}
 	}
 
