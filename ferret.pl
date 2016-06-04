@@ -660,7 +660,10 @@ sub exhibit {
 		$value =~ tr/\x20-\x7f//cd;	# only printable
 		$value =~ s/\s{2,}/ /g;		# strip multiple spaces
 		$value =~ s/\s+$//;			# strip trailing white space
-		$this->write(" ".$label.$trailer." ".$this->{bold}.$value.$this->{normal});
+		if (substr($value,0,1) eq ' ')
+			{$this->write(" ".$label.$trailer." ".$value)}
+		else
+			{$this->write(" ".$label.$trailer." ".$this->{bold}.$value.$this->{normal})}
 		}
 	}
 
