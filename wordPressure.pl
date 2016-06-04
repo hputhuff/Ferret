@@ -152,6 +152,8 @@ sub processConfFiles {
 				$default->{documentRoot} = $1;
 				}
 			}
+		$default->{serverName} =~ tr/"//d;
+		$default->{documentRoot} =~ tr/"//d;
 		}
 print Dumper($default); return;
 	$confFiles{$2} = $1 while ($apachectl =~ /.+\s+(\S+)\s+\((\S+)\:\d+\)/igm);
