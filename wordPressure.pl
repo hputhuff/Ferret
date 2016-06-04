@@ -52,20 +52,12 @@ our $options = {
 
 our $apacheCommand = q/apachectl -S 2>&1 | grep -i '\.conf'/; # the command to peruse vhosts
 our $log = new Console;		# manage output
-our $files = 0;				# count of .conf files processed
-our $sites = 0;				# count of DocumentRoot paths processed
+our $sites = 0;				# count of servers/sites processed
 our $wpSites = 0;			# count of WordPress sites
 our $wpSecured = 0;			# count of WordPress sites secured
 
 our $apachectl = undef;		# string output of apachectl
-our $default = {			# default web server info
-	serverName		=> undef,
-	confFile		=> undef,
-	documentRoot	=> undef
-	};
-our %confFiles = ();		# list of apache .conf files & server names
-our @documentRoots = ();	# list of document root directories
-our @wpDocumentRoots = ();	# list of WordPress Directories
+our $servers = {};			# matrix of server->{confFile,documentRoot} entries
 
 # mainline process
 
@@ -79,9 +71,9 @@ elsif ($our->{documentRoot}) {
 	processDocumentRoot($our->{documentRoot});
 	}
 else {
-	processConfFiles();
+	processServers();
 	}
-$log->write("Completed: $files files, $sites sites, $wpSites WP sites, $wpSecured secured")
+$log->write("Completed: $sites servers, $wpSites WP sites, $wpSecured secured")
 	unless $options->{quiet};
 $log->footer unless $options->{quiet};
 exit;
@@ -137,27 +129,47 @@ sub unique {
 	return sort(keys %result);
 	}
 
-# obtain and process the apache .conf files
+# process apache server identities
 
-sub processConfFiles {
-	my ($buffer);
+sub processServers {
+	my ($server,$conf,$buffer,$vhost,$serverName,$documentRoot);
 	$apachectl = `$apacheCommand`;
 	return unless $apachectl;
+	# 1st task: identify default server & content
 	if ($apachectl =~ /.+default server\s+(\S+)\s+\((\S+)\:\d+\)/im) {
-		$default->{serverName} = $1;
-		$default->{confFile} = $2;
-		if ($default->{confFile}) {
-			$buffer = readfile($default->{confFile});
+		$server = $1; $conf = $2;
+		$servers->{$server} = {};
+		$servers->{$server}->{confFile} = $conf;
+		if ($servers->{$server}->{confFile}) {
+			$buffer = readfile($servers->{$server}->{confFile});
 			if ($buffer =~ /^\s*DocumentRoot\s+(\S+)/im) {
-				$default->{documentRoot} = $1;
+				$servers->{$server}->{documentRoot} = $1;
+				$servers->{$server}->{documentRoot} =~ tr/"//d; #"
 				}
 			}
-		$default->{serverName} =~ tr/"//d;
-		$default->{documentRoot} =~ tr/"//d;
 		}
-print Dumper($default); return;
-	$confFiles{$2} = $1 while ($apachectl =~ /.+\s+(\S+)\s+\((\S+)\:\d+\)/igm);
-	processOneConfFile($_,$confFiles{$_}) foreach (sort keys(%confFiles));
+	# next: find each server & .conf file
+	while ($apachectl =~ /.+\s+(\S+)\s+\((\S+)\:\d+\)/igm) {
+		$server = $1; $conf = $2;
+		next if (exists $servers->{$server});
+		$servers->{$server} = {};
+		$servers->{$server}->{confFile} = $conf;
+		if ($servers->{$server}->{confFile}) {
+			$buffer = readfile($servers->{$server}->{confFile});
+			foreach ($buffer =~ /<VirtualHost.+?VirtualHost>/igs) {
+				$vhost = $_;
+				next unless ($vhost =~ /^\s*ServerName\s+(\S+)/im);
+				$serverName = $1; $serverName =~ tr/"//d; #"
+				next unless ($server eq $serverName); # not right vhost
+				if ($vhost =~ /^\s*DocumentRoot\s+(\S+)/im) {
+					$servers->{$server}->{documentRoot} = $1;
+					$servers->{$server}->{documentRoot} =~ tr/"//d; #"
+					}
+				}
+			}
+		}
+print Dumper($servers); return;
+#	processOneConfFile($_,$confFiles{$_}) foreach (sort keys(%confFiles));
 	}
 
 # process a single .conf file
