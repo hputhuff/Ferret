@@ -99,7 +99,7 @@ else {
 	System->show		if ($options->{all} || $options->{server});
 	Network->show		if ($options->{all} || $options->{network});
 	Listeners->show		if ($options->{all} || $options->{listeners});
-	Connections->show	if ($options->{all} || $options->{connections});
+	#needs work# Connections->show	if ($options->{all} || $options->{connections});
 	Websites->show		if ($options->{all} || $options->{websites});
 	}
 $log->footer if $options->{times};
