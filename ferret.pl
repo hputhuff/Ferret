@@ -139,7 +139,7 @@ sub parseOptions {
 			$options->{connections} ||
 			$options->{websites}
 			);
-	$conf->{externalIP} = `curl -s -4 curlmyip.de`; # save our address
+	$conf->{externalIP} = `curl -s -4 http://icanhazip.com`; # save our address
 	}
 
 # load the local services table from /etc/services
@@ -335,7 +335,7 @@ sub externalIPv4 {
 
 sub externalIPv6 {
 	my $class = shift;
-	$log->exhibit("External IP (IPv6)",`curl -s -6 icanhazip.com`);
+	$log->exhibit("External IP (IPv6)",`curl -s -6 http://icanhazip.com`);
 	}
 
 # display the network (eth0) IP address
