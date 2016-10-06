@@ -1,13 +1,13 @@
 #!/usr/bin/perl
 ##
-#                        _ ____                                   
-# __      _____  _ __ __| |  _ \ _ __ ___  ___ ___ _   _ _ __ ___ 
-# \ \ /\ / / _ \| '__/ _` | |_) | '__/ _ \/ __/ __| | | | '__/ _ \
-#  \ V  V / (_) | | | (_| |  __/| | |  __/\__ \__ \ |_| | | |  __/
-#   \_/\_/ \___/|_|  \__,_|_|   |_|  \___||___/___/\__,_|_|  \___|
-# ----------------------------------------
-#	wordPressure.pl: squeeze the vulnerabilities out of WordPress sites
-#	run with: wordPressure.pl [-hqtv] [DocumentRoot]
+# __        __             _   ____                    
+# \ \      / /__  _ __ ___| |_|  _ \ _ __ ___  ___ ___ 
+#  \ \ /\ / / _ \| '__/ __| __| |_) | '__/ _ \/ __/ __|
+#   \ V  V / (_) | |  \__ \ |_|  __/| | |  __/\__ \__ \
+#    \_/\_/ \___/|_|  |___/\__|_|   |_|  \___||___/___/
+# -----------------------------------------------------
+#	worstpress.pl: squeeze the vulnerabilities out of WordPress sites
+#	run with: worstpress.pl [-hqtv] [DocumentRoot]
 #	options:
 #		[DocumentRoot] = only process this directory
 #		-h or --help = show this information
@@ -25,29 +25,28 @@ use Data::Dumper;$Data::Dumper::Indent=1;$Data::Dumper::Quotekeys=1;$Data::Dumpe
 
 our @helpInformation = (
 	" ",
-	"wordPressure.pl - Squeeze vulnerabilities out of WordPress sites",
+	"worstpress.pl - Squeeze vulnerabilities out of WordPress sites",
 	" ",
 	"Command:",
-	"    wordPressure.pl [-hqtv] [DocumentRoot]",
+	"    worstpress.pl [-hqtv] [DocumentRoot]",
 	"Options:",
 	"    [DocumentRoot] = only process this directory",
 	"    -h or --help = show this information",
 	"    -q or --quiet = suppress console output",
 	"    -t or --test[ing] = run in test mode (read-only)",
 	"    -v or --verbose = show process information",
-	"May 2016 by Harley H. Puthuff",
-	"Copyright 2016, Your Showcase",
+	"October 2016 by Harley H. Puthuff",
 	" "
 	);
 
 # globals
 
 our $options = {
-	help => 0,				# show help information
-	quiet => 0,				# suppress console output
-	test => 0,				# testing mode
-	verbose => 0,			# show process info
-	documentRoot => undef,	# path to single DocumentRoot
+	help			=> 0,		# show help information
+	quiet			=> 0,		# suppress console output
+	test			=> 0,		# testing mode
+	verbose			=> 0,		# show process info
+	documentRoot	=> undef,	# path to single DocumentRoot
 	};
 
 our $apacheCommand = q/apachectl -S 2>&1 | grep -i '\.conf'/; # the command to peruse vhosts
