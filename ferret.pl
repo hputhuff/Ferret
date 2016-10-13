@@ -303,7 +303,7 @@ sub dashboard {
 			$password = `/usr/local/psa/bin/admin --show-password`;
 			}
 		$log->exhibit(" Plesk login","admin => $password");
-		$url = "http://".$conf->{externalIP}.":8880/login_up.php3?login_name=admin&passwd=$password";
+		$url = "https://".$conf->{externalIP}.":8443/login_up.php3?login_name=admin&passwd=$password";
 		$log->exhibit(" Plesk url",$url);
 		}
 	}
