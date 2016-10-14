@@ -18,7 +18,7 @@
 #		-s or --system = show system specifics
 #		-t or --times = show start/stop times
 #		-w or --websites = show hosted website details
-#	June 2016 by Harley H. Puthuff
+#	October 2016 by Harley H. Puthuff
 #	with a lot of ideas from Samir Jafferali's shell script rsi.sh
 ##
 
@@ -44,7 +44,7 @@ our @helpInformation = (
 	"    -s or --system = show system specifics",
 	"    -t or --times = show start/stop times",
 	"    -w or --websites = show hosted website details",
-	"June 2016 by Harley H. Puthuff",
+	"October 2016 by Harley H. Puthuff",
 	" "
 	);
 
