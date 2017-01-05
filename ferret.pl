@@ -139,7 +139,7 @@ sub parseOptions {
 			$options->{connections} ||
 			$options->{websites}
 			);
-	$conf->{externalIP} = `curl -s -4 http://icanhazip.com`; # save our address
+	$conf->{externalIP} = `curl -s -4 http://icanhazip.com`; # save our extrn IP address
 	}
 
 # load the local services table from /etc/services
@@ -318,40 +318,8 @@ package Network;
 sub show {
 	my $class = shift;
 	$log->exhibit("Network:");
-	$class->externalIPv4;
-	$class->externalIPv6;
-	$class->networkIP;
-	$class->privateIP;
-	}
-
-# display the external IP address (IPv4)
-
-sub externalIPv4 {
-	my $class = shift;
 	$log->exhibit("External IP (IPv4)",$conf->{externalIP});
-	}
-
-# display the external IP address (IPv6)
-
-sub externalIPv6 {
-	my $class = shift;
-	$log->exhibit("External IP (IPv6)",`curl -s -6 http://icanhazip.com`);
-	}
-
-# display the network (eth0) IP address
-
-sub networkIP {
-	my $class = shift;
-	`ip addr` =~ /eth0.+?inet\s+(\d+\.\d+\.\d+\.\d+)/is;
-	$log->exhibit("Network IP (eth0)",$1);
-	}
-
-# display the private (eth1) IP address
-
-sub privateIP {
-	my $class = shift;
-	`ip addr` =~ /eth1.+?inet\s+(\d+\.\d+\.\d+\.\d+)/is;
-	$log->exhibit("Private IP (eth1)",$1);
+	$log->exhibit("Network IP address",$_) foreach (split /\s+/,`hostname -I`);
 	}
 
 ##
